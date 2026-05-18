@@ -62,15 +62,15 @@ FastMCP stdio tool server
 
 ## Tech Stack
 
-| Layer | Technologies |
-| --- | --- |
-| Frontend | React 19, Vite, TypeScript, react-markdown, CSS |
-| Backend API | Python 3.12, FastAPI, Uvicorn |
+| Layer               | Technologies                                                   |
+| ------------------- | -------------------------------------------------------------- |
+| Frontend            | React 19, Vite, TypeScript, react-markdown, CSS                |
+| Backend API         | Python 3.12, FastAPI, Uvicorn                                  |
 | Agent orchestration | LangChain, LangGraph, OpenAI chat model via `langchain-openai` |
-| Tool layer | FastMCP stdio server, MCP tool calls |
-| Creative layer | Structured-output creative agent for affirmation cards |
-| Integrations | Google Calendar API, Notion API, RapidAPI Moon Phase API |
-| Containers | Backend Dockerfile, frontend Dockerfile, Nginx static serving |
+| Tool layer          | FastMCP stdio server, MCP tool calls                           |
+| Creative layer      | Structured-output creative agent for affirmation cards         |
+| Integrations        | Google Calendar API, Notion API, RapidAPI Moon Phase API       |
+| Containers          | Backend Dockerfile, frontend Dockerfile, Nginx static serving  |
 
 ## Project Structure
 
@@ -322,14 +322,10 @@ If a key was committed or shared accidentally, rotate it before making the repos
 
 ## Roadmap
 
-- Add per-session chat state with `session_id`.
-- Add persistent memory using SQLite, Postgres, or Redis.
 - Add a RAG layer for saved reflections, goals, and previous plans.
-- Render affirmation cards visually in the frontend using the creative agent output.
 - Add production-ready auth and Google OAuth handling.
 - Deploy React frontend to Vercel or Netlify.
 - Deploy FastAPI backend to Railway, Render, Fly.io, AWS, or a VPS.
-- Add tests for API routes, agent graph behavior, and MCP tools.
 - Add a richer dashboard for moon phase, tasks, calendar blocks, and Notion saves.
 
 ## Interview Demo Flow
@@ -340,11 +336,6 @@ If a key was committed or shared accidentally, rotate it before making the repos
 4.  Ask it to turn the guidance into a practical plan.
 5.  Ask it to save the plan to Notion.
 6.  Ask it to schedule a calendar block.
-
-## Certifications
-
-Fundamentals of Building AI Agents
-https://www.credly.com/badges/5fbaeee3-045a-4fb5-815b-8bcc75d0345d/public_url
 
 ## Status
 
