@@ -49,6 +49,7 @@ FastMCP stdio tool server
 ## Features
 
 - Chat-based Moon Agent frontend built with React, Vite, and TypeScript.
+- Browser voice input for dictating prompts, with optional read-aloud responses.
 - FastAPI backend exposing `/chat`, `/affirmation-card`, and `/health`.
 - LangGraph orchestration for model calls, tool routing, and reflection.
 - MCP stdio server for tool isolation.
@@ -213,6 +214,14 @@ or:
 ```text
 http://localhost:5174
 ```
+
+Browser voice controls are available in the chat UI:
+
+- Click `Mic` to dictate a prompt into the chat input.
+- Review or edit the transcript before sending.
+- Click `Audio` to toggle read-aloud responses.
+
+Voice input works best in Chrome or Edge because browser speech-recognition support varies by browser.
 
 Build the frontend Docker image from the frontend directory:
 

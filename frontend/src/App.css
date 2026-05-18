@@ -75,6 +75,7 @@
 .quick-actions,
 .integration-row,
 .card-header,
+.chat-actions,
 .composer,
 .tool-list {
   display: flex;
@@ -295,6 +296,12 @@ button:nth-child(3) {
   margin-bottom: 26px;
 }
 
+.chat-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .messages {
   display: grid;
   gap: 14px;
@@ -461,6 +468,13 @@ button:nth-child(3) {
   font-weight: 700;
 }
 
+.voice-error {
+  margin: 12px 0 0;
+  color: #7a4b17;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .composer input {
   flex: 1;
   min-width: 0;
@@ -474,6 +488,30 @@ button:nth-child(3) {
 
 .composer button {
   box-shadow: none;
+}
+
+.mic-button,
+.voice-toggle {
+  min-width: 64px;
+  border: 1px solid rgba(88, 75, 92, 0.14);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: none;
+}
+
+.voice-toggle {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.mic-button.is-listening,
+.voice-toggle.is-active {
+  color: #fffaf2;
+  background: #7a4b17;
+}
+
+.mic-button.is-listening {
+  box-shadow: 0 0 0 5px rgba(122, 75, 23, 0.14);
 }
 
 .composer input:disabled,
@@ -553,6 +591,10 @@ button:nth-child(3) {
   .composer {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .chat-actions {
+    justify-content: flex-start;
   }
 
   .composer {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import './App.css'
 
@@ -15,6 +15,48 @@ type AffirmationCard = {
   visual_prompt: string
   palette: string[]
 }
+
+type SpeechRecognitionResultItem = {
+  transcript: string
+}
+
+type SpeechRecognitionResult = {
+  isFinal: boolean
+  [index: number]: SpeechRecognitionResultItem
+}
+
+type SpeechRecognitionResultList = {
+  length: number
+  [index: number]: SpeechRecognitionResult
+}
+
+type SpeechRecognitionEvent = {
+  resultIndex: number
+  results: SpeechRecognitionResultList
+}
+
+type SpeechRecognitionErrorEvent = {
+  error: string
+}
+
+type BrowserSpeechRecognition = {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+}
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition
+
+type VoiceWindow = Window &
+  typeof globalThis & {
+    SpeechRecognition?: BrowserSpeechRecognitionConstructor
+    webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor
+  }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -34,11 +76,122 @@ function linkifyUrls(text: string) {
   return text.replace(/(?<!\]\()https?:\/\/[^\s)]+/g, (url) => `[${url}](${url})`)
 }
 
+function stripMarkdownForSpeech(text: string) {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`>#-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function App() {
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [voiceError, setVoiceError] = useState('')
+  const [isListening, setIsListening] = useState(false)
+  const [readAloud, setReadAloud] = useState(false)
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null)
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop()
+      window.speechSynthesis?.cancel()
+    }
+  }, [])
+
+  function speakAgentResponse(text: string) {
+    if (!readAloud || !('speechSynthesis' in window)) return
+
+    const spokenText = stripMarkdownForSpeech(text)
+    if (!spokenText) return
+
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(spokenText)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.92
+    utterance.pitch = 1
+    window.speechSynthesis.speak(utterance)
+  }
+
+  function toggleReadAloud() {
+    setVoiceError('')
+
+    if (!('speechSynthesis' in window)) {
+      setVoiceError('Read-aloud is not supported in this browser.')
+      return
+    }
+
+    setReadAloud((enabled) => {
+      if (enabled) {
+        window.speechSynthesis.cancel()
+      }
+
+      return !enabled
+    })
+  }
+
+  function startListening() {
+    setVoiceError('')
+
+    const voiceWindow = window as VoiceWindow
+    const Recognition =
+      voiceWindow.SpeechRecognition || voiceWindow.webkitSpeechRecognition
+
+    if (!Recognition) {
+      setVoiceError('Voice input is not supported in this browser. Try Chrome or Edge.')
+      return
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop()
+      return
+    }
+
+    const recognition = new Recognition()
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.lang = 'en-US'
+
+    let finalTranscript = ''
+
+    recognition.onresult = (event) => {
+      let interimTranscript = ''
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index]
+        const transcript = result[0]?.transcript || ''
+
+        if (result.isFinal) {
+          finalTranscript += transcript
+        } else {
+          interimTranscript += transcript
+        }
+      }
+
+      setInput(`${finalTranscript}${interimTranscript}`.trim())
+    }
+
+    recognition.onerror = (event) => {
+      const errorMessage =
+        event.error === 'not-allowed'
+          ? 'Microphone access was blocked. Allow mic access and try again.'
+          : `Voice input stopped: ${event.error}.`
+
+      setVoiceError(errorMessage)
+      setIsListening(false)
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+    }
+
+    recognitionRef.current = recognition
+    setIsListening(true)
+    recognition.start()
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -47,8 +200,11 @@ function App() {
     if (!userMessage) return
 
     setError('')
+    setVoiceError('')
     setInput('')
     setIsLoading(true)
+    recognitionRef.current?.stop()
+    window.speechSynthesis?.cancel()
     setMessages((current) => [
       ...current,
       { role: 'user', content: userMessage },
@@ -80,6 +236,7 @@ function App() {
           affirmationCard: data.affirmation_card || null,
         },
       ])
+      speakAgentResponse(data.response || 'Moon Agent returned an empty response.')
     } catch (caughtError) {
       const message =
         caughtError instanceof Error
@@ -148,7 +305,18 @@ function App() {
               <p className="card-label">Agent conversation</p>
               <h2>Daily guidance preview</h2>
             </div>
-            <span className="live-dot">Connected locally</span>
+            <div className="chat-actions">
+              <button
+                aria-pressed={readAloud}
+                className={`voice-toggle ${readAloud ? 'is-active' : ''}`}
+                onClick={toggleReadAloud}
+                title={readAloud ? 'Turn read-aloud off' : 'Turn read-aloud on'}
+                type="button"
+              >
+                Audio
+              </button>
+              <span className="live-dot">Connected locally</span>
+            </div>
           </div>
 
           <div className="messages">
@@ -213,6 +381,7 @@ function App() {
           </div>
 
           {error && <p className="error-message">{error}</p>}
+          {voiceError && <p className="voice-error">{voiceError}</p>}
 
           <form
             className="composer"
@@ -226,6 +395,16 @@ function App() {
               onChange={(event) => setInput(event.target.value)}
               disabled={isLoading}
             />
+            <button
+              aria-pressed={isListening}
+              className={`mic-button ${isListening ? 'is-listening' : ''}`}
+              disabled={isLoading}
+              onClick={startListening}
+              title={isListening ? 'Stop listening' : 'Start voice input'}
+              type="button"
+            >
+              {isListening ? 'Stop' : 'Mic'}
+            </button>
             <button type="submit" disabled={isLoading || !input.trim()}>
               {isLoading ? 'Generating...' : 'Send'}
             </button>

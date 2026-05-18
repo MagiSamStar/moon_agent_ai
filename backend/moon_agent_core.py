@@ -312,6 +312,7 @@ async def create_moon_graph():
         script_path=MCP_SERVER,
         python_cmd=str(PYTHON_EXE),
         cwd=str(BASE_DIR),
+        env=dict(os.environ),
     )
     client = Client(transport)
     await client.__aenter__()
