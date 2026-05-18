@@ -42,19 +42,22 @@ FastMCP stdio tool server
         +--> Moon API / moon data layer
         +--> Google Calendar integration
         +--> Notion page + database integration
+        +--> Creative affirmation card agent
         +--> Future RAG / memory layer
 ```
 
 ## Features
 
 - Chat-based Moon Agent frontend built with React, Vite, and TypeScript.
-- FastAPI backend exposing `/chat` and `/health`.
+- FastAPI backend exposing `/chat`, `/affirmation-card`, and `/health`.
 - LangGraph orchestration for model calls, tool routing, and reflection.
 - MCP stdio server for tool isolation.
+- Creative agent for structured affirmation card generation.
 - Moon phase / planetary context through the Moon API.
 - Google Calendar event creation.
 - Notion page and database entry creation.
 - Markdown chat rendering with clickable links.
+- Dockerfiles for both backend and frontend containers.
 - Local `.env` configuration for secrets and integration IDs.
 
 ## Tech Stack
@@ -65,23 +68,31 @@ FastMCP stdio tool server
 | Backend API | Python 3.12, FastAPI, Uvicorn |
 | Agent orchestration | LangChain, LangGraph, OpenAI chat model via `langchain-openai` |
 | Tool layer | FastMCP stdio server, MCP tool calls |
+| Creative layer | Structured-output creative agent for affirmation cards |
 | Integrations | Google Calendar API, Notion API, RapidAPI Moon Phase API |
+| Containers | Backend Dockerfile, frontend Dockerfile, Nginx static serving |
 
 ## Project Structure
 
 ```text
 Moon_Agent/
-  app.py                 # FastAPI backend
-  moon_agent_core.py     # LangGraph agent and MCP client setup
-  stdio_server.py        # FastMCP tool server
-  run_cli.py             # CLI runner for local testing
-  requirements.txt       # Python dependencies
-  .env.example           # Backend environment template
-  my-app/
+  backend/
+    app.py               # FastAPI backend
+    creative_agent.py    # Structured affirmation card agent
+    moon_agent_core.py   # LangGraph agent and MCP client setup
+    stdio_server.py      # FastMCP tool server
+    run_cli.py           # CLI runner for local testing
+    requirements.txt     # Python dependencies
+    .env.example         # Backend environment template
+    Dockerfile           # Backend container image
+    .dockerignore        # Backend Docker build exclusions
+  frontend/
     src/App.tsx          # React chat UI
     src/App.css          # Frontend styling
     .env.example         # Frontend environment template
     package.json         # Frontend dependencies/scripts
+  docs/
+    moon_agent.png       # Demo screenshot
 ```
 
 ## Local Setup
@@ -93,13 +104,13 @@ Create and activate a Python virtual environment, then install dependencies:
 ```powershell
 python -m venv venv
 venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r backend\requirements.txt
 ```
 
 Create a backend `.env` from the example:
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item backend\.env.example backend\.env
 ```
 
 Fill in the required values:
@@ -113,19 +124,28 @@ NOTION_DATABASE_TITLE_PROPERTY=Name
 CALENDAR_TIMEZONE=America/New_York
 MOON_LAT=40.73468964462097
 MOON_LON=-74.25255582575559
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-For Google Calendar, keep OAuth files local only:
+For Google Calendar, keep OAuth files local only. By default, the backend looks for these files in `backend/` first and then in the repository root:
 
 ```text
 moon_agent.json
 token.json
 ```
 
+You can also set explicit paths in `backend\.env`. Relative paths are resolved from the repository root:
+
+```env
+GOOGLE_CLIENT_SECRET_FILE=backend/moon_agent.json
+GOOGLE_TOKEN_FILE=backend/token.json
+```
+
 Start the backend:
 
 ```powershell
-venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
+cd backend
+..\venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
 Check health:
@@ -140,12 +160,27 @@ Expected response:
 { "status": "healthy" }
 ```
 
-### 2. Frontend
-
-Install frontend dependencies:
+Build the backend Docker image from the backend directory:
 
 ```powershell
-cd my-app
+cd backend
+docker build -t moon-agent-backend .
+```
+
+Run it with the backend environment file:
+
+```powershell
+docker run --env-file .env -p 8000:8000 moon-agent-backend
+```
+
+OAuth files are excluded from the Docker build context. For Calendar tools in Docker, mount `moon_agent.json` and `token.json` or point `GOOGLE_CLIENT_SECRET_FILE` and `GOOGLE_TOKEN_FILE` at mounted paths.
+
+### 2. Frontend
+
+In a new terminal from the repository root, install frontend dependencies:
+
+```powershell
+cd frontend
 npm install
 ```
 
@@ -179,6 +214,25 @@ or:
 http://localhost:5174
 ```
 
+Build the frontend Docker image from the frontend directory:
+
+```powershell
+cd frontend
+docker build -t moon-agent-frontend .
+```
+
+If your backend is not available at `http://localhost:8000` from the browser, pass the API URL at build time:
+
+```powershell
+docker build --build-arg VITE_API_URL=http://localhost:8000 -t moon-agent-frontend .
+```
+
+Run the frontend container:
+
+```powershell
+docker run -p 5173:80 moon-agent-frontend
+```
+
 ## API Endpoints
 
 ```http
@@ -200,9 +254,36 @@ Returns:
 
 ```json
 {
-  "response": "Moon Agent response..."
+  "response": "Moon Agent response...",
+  "affirmation_card": null
 }
 ```
+
+If the user asks for an affirmation card, `/chat` may also return a structured card:
+
+```json
+{
+  "response": "Moon Agent response...",
+  "affirmation_card": {
+    "card_title": "Quiet Renewal",
+    "affirmation": "I create steady progress with calm intention.",
+    "caption": "A grounded reminder to simplify, release, and commit.",
+    "visual_prompt": "Tarot-card-inspired moonlit illustration...",
+    "palette": ["#2F2937", "#F4D7AA", "#DCE3ED"]
+  }
+}
+```
+
+```http
+POST /affirmation-card
+Content-Type: application/json
+
+{
+  "message": "Create an affirmation card for today's moon guidance."
+}
+```
+
+Returns a structured affirmation card with title, affirmation, caption, visual prompt, and palette.
 
 ## Environment And Security Notes
 
@@ -212,18 +293,21 @@ Keep these local:
 
 ```text
 .env
-my-app/.env
+backend/.env
+frontend/.env
 moon_agent.json
 token.json
+backend/moon_agent.json
+backend/token.json
 venv/
-my-app/node_modules/
+frontend/node_modules/
 ```
 
 Commit only example files:
 
 ```text
-.env.example
-my-app/.env.example
+backend/.env.example
+frontend/.env.example
 ```
 
 If a key was committed or shared accidentally, rotate it before making the repository public.
@@ -241,6 +325,7 @@ If a key was committed or shared accidentally, rotate it before making the repos
 - Add per-session chat state with `session_id`.
 - Add persistent memory using SQLite, Postgres, or Redis.
 - Add a RAG layer for saved reflections, goals, and previous plans.
+- Render affirmation cards visually in the frontend using the creative agent output.
 - Add production-ready auth and Google OAuth handling.
 - Deploy React frontend to Vercel or Netlify.
 - Deploy FastAPI backend to Railway, Render, Fly.io, AWS, or a VPS.
@@ -249,12 +334,17 @@ If a key was committed or shared accidentally, rotate it before making the repos
 
 ## Interview Demo Flow
 
-1.  Ask Moon Agent for today’s moon guidance.
+1.  Ask Moon Agent for today's moon guidance.
 2.  Ask the Moon Agent when is the next New or Full Moon.
-3.  Ask the Moon agent what the current Astrological House and Sign the Moon is in.
+3.  Ask the Moon Agent what the current astrological house and sign the Moon is in.
 4.  Ask it to turn the guidance into a practical plan.
 5.  Ask it to save the plan to Notion.
 6.  Ask it to schedule a calendar block.
+
+## Certifications
+
+Fundamentals of Building AI Agents
+https://www.credly.com/badges/5fbaeee3-045a-4fb5-815b-8bcc75d0345d/public_url
 
 ## Status
 

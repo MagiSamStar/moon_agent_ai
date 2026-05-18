@@ -1,6 +1,6 @@
 import asyncio
 
-from moon_agent_core import create_moon_graph, process_message
+from backend.moon_agent_core import create_moon_graph, process_message
 
 
 async def run_cli():

@@ -1,6 +1,8 @@
 import asyncio
 import json
+import os
 from pathlib import Path
+import sys
 from typing import Annotated, Any, List, Literal, Optional, Sequence
 import dotenv
 from fastmcp import Client
@@ -15,11 +17,13 @@ from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
 
-dotenv.load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent
+dotenv.load_dotenv(REPO_ROOT / ".env")
+dotenv.load_dotenv(BASE_DIR / ".env", override=True)
+
 MCP_SERVER = BASE_DIR / "stdio_server.py"
-PYTHON_EXE = BASE_DIR / "venv" / "Scripts" / "python.exe"
+PYTHON_EXE = os.getenv("MOON_AGENT_PYTHON") or sys.executable
 
 USER_PROFILE = {
     "name": "SamStar",

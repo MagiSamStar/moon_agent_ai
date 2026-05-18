@@ -5,6 +5,15 @@ import './App.css'
 type ChatMessage = {
   role: 'user' | 'agent'
   content: string
+  affirmationCard?: AffirmationCard | null
+}
+
+type AffirmationCard = {
+  card_title: string
+  affirmation: string
+  caption: string
+  visual_prompt: string
+  palette: string[]
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -58,12 +67,17 @@ function App() {
         throw new Error(`Moon Agent API returned ${response.status}`)
       }
 
-      const data = (await response.json()) as { response?: string }
+      const data = (await response.json()) as {
+        response?: string
+        affirmation_card?: AffirmationCard | null
+      }
+
       setMessages((current) => [
         ...current,
         {
           role: 'agent',
           content: data.response || 'Moon Agent returned an empty response.',
+          affirmationCard: data.affirmation_card || null,
         },
       ])
     } catch (caughtError) {
@@ -160,9 +174,33 @@ function App() {
                   >
                     {linkifyUrls(message.content)}
                   </ReactMarkdown>
+                  
+                  {message.affirmationCard && (
+                    <div
+                      className="affirmation-card"
+                      style={{
+                        background: `linear-gradient(135deg, ${
+                          message.affirmationCard.palette?.[0] || '#2f2937'
+                        }, ${
+                          message.affirmationCard.palette?.[1] || '#675772'
+                        })`,
+                      }}
+                    >
+                      <p className="affirmation-card-label">Affirmation Card</p>
+                      <h3>{message.affirmationCard.card_title}</h3>
+                      <p className="affirmation-card-text">
+                        {message.affirmationCard.affirmation}
+                      </p>
+                      <p className="affirmation-card-caption">
+                        {message.affirmationCard.caption}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </article>
             ))}
+
+            
 
             {isLoading && (
               <article className="message agent-message">

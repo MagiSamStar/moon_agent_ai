@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+token.json
+moon_agent.json
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+docs/
+frontend/
+backend/.env
+backend/token.json
+backend/moon_agent.json

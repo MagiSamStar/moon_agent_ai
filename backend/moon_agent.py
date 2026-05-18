@@ -158,8 +158,8 @@ Return ONLY the improved version.
     ]
 )
 
-model_react = chat_prompt | llm.bind_tools(tools)
 
+model_react = chat_prompt | llm.bind_tools(tools)
 
 class CalendarBlock(BaseModel):
     title: str

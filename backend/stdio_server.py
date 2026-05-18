@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import os
+from pathlib import Path
 import re
 import time
 from typing import Any
@@ -16,7 +17,10 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 
-dotenv.load_dotenv()
+BACKEND_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BACKEND_DIR.parent
+dotenv.load_dotenv(REPO_ROOT / ".env")
+dotenv.load_dotenv(BACKEND_DIR / ".env", override=True)
 
 CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 DEFAULT_TIMEZONE = os.getenv("CALENDAR_TIMEZONE", "America/New_York")
@@ -55,6 +59,31 @@ CALENDAR_AUTH_TIMEOUT_SECONDS = _env_int("CALENDAR_AUTH_TIMEOUT_SECONDS", 120)
 CALENDAR_API_TIMEOUT_SECONDS = _env_int("CALENDAR_API_TIMEOUT_SECONDS", 30)
 
 
+def _path_from_env(name: str) -> Path | None:
+    value = os.getenv(name)
+    if not value:
+        return None
+
+    path = Path(value).expanduser()
+    if path.is_absolute():
+        return path
+    return REPO_ROOT / path
+
+
+def _oauth_file_path(env_name: str, filename: str, *, writable: bool = False) -> Path:
+    env_path = _path_from_env(env_name)
+    if env_path:
+        return env_path
+
+    backend_path = BACKEND_DIR / filename
+    repo_path = REPO_ROOT / filename
+    if backend_path.exists():
+        return backend_path
+    if repo_path.exists():
+        return repo_path
+    return backend_path if writable else repo_path
+
+
 class _TimeoutSession(requests.Session):
     def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
         kwargs.setdefault("timeout", CALENDAR_API_TIMEOUT_SECONDS)
@@ -71,23 +100,34 @@ def _rapidapi_headers() -> dict[str, str]:
 
 def _get_calendar_service() -> Any:
     creds = None
+    token_path = _oauth_file_path("GOOGLE_TOKEN_FILE", "token.json", writable=True)
+    client_secret_path = _oauth_file_path(
+        "GOOGLE_CLIENT_SECRET_FILE",
+        "moon_agent.json",
+    )
 
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", CALENDAR_SCOPES)
+    if token_path.exists():
+        creds = Credentials.from_authorized_user_file(str(token_path), CALENDAR_SCOPES)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request(session=_TimeoutSession()))
         else:
+            if not client_secret_path.exists():
+                raise FileNotFoundError(
+                    "Missing Google OAuth client file. Set GOOGLE_CLIENT_SECRET_FILE "
+                    f"or place moon_agent.json at {BACKEND_DIR} or {REPO_ROOT}."
+                )
             flow = InstalledAppFlow.from_client_secrets_file(
-                "moon_agent.json", CALENDAR_SCOPES
+                str(client_secret_path), CALENDAR_SCOPES
             )
             creds = flow.run_local_server(
                 port=0,
                 timeout_seconds=CALENDAR_AUTH_TIMEOUT_SECONDS,
             )
 
-        with open("token.json", "w", encoding="utf-8") as token:
+        token_path.parent.mkdir(parents=True, exist_ok=True)
+        with token_path.open("w", encoding="utf-8") as token:
             token.write(creds.to_json())
 
     http = google_auth_httplib2.AuthorizedHttp(
