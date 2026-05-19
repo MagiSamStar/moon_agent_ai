@@ -22,6 +22,7 @@ The project helped me deepen my understanding of:
 - React + FastAPI full-stack AI integration
 - LLM reflection and tool routing patterns
 - Fast MCP Stdio Server
+- Optimizing the chat flow with a lightweight direct-response layer for simple intents, reducing unnecessary LLM calls for greetings.
 
 ## Architecture
 
@@ -249,77 +250,6 @@ GET /health
 ```
 
 Returns backend health.
-
-```http
-POST /chat
-Content-Type: application/json
-
-{
-  "message": "What should I focus on today based on the moon?"
-}
-```
-
-Returns:
-
-```json
-{
-  "response": "Moon Agent response...",
-  "affirmation_card": null
-}
-```
-
-If the user asks for an affirmation card, `/chat` may also return a structured card:
-
-```json
-{
-  "response": "Moon Agent response...",
-  "affirmation_card": {
-    "card_title": "Quiet Renewal",
-    "affirmation": "I create steady progress with calm intention.",
-    "caption": "A grounded reminder to simplify, release, and commit.",
-    "visual_prompt": "Tarot-card-inspired moonlit illustration...",
-    "palette": ["#2F2937", "#F4D7AA", "#DCE3ED"]
-  }
-}
-```
-
-```http
-POST /affirmation-card
-Content-Type: application/json
-
-{
-  "message": "Create an affirmation card for today's moon guidance."
-}
-```
-
-Returns a structured affirmation card with title, affirmation, caption, visual prompt, and palette.
-
-## Environment And Security Notes
-
-Do not commit real secrets or OAuth tokens.
-
-Keep these local:
-
-```text
-.env
-backend/.env
-frontend/.env
-moon_agent.json
-token.json
-backend/moon_agent.json
-backend/token.json
-venv/
-frontend/node_modules/
-```
-
-Commit only example files:
-
-```text
-backend/.env.example
-frontend/.env.example
-```
-
-If a key was committed or shared accidentally, rotate it before making the repository public.
 
 ## Current Limitations
 
