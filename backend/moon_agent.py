@@ -120,7 +120,7 @@ Tone:
 - Encouraging
 - Practical
 - Not too long
-""",
+""" 
         ),
         MessagesPlaceholder(variable_name="scratch_pad"),
     ]

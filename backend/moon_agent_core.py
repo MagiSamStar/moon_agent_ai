@@ -15,6 +15,10 @@ from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
+try:
+    from .responses import get_direct_response
+except ImportError:
+    from responses import get_direct_response
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -322,6 +326,11 @@ async def create_moon_graph():
 
 async def process_message(graph, conversation, user_message: str):
     conversation.append(HumanMessage(content=user_message))
+
+    direct_response = get_direct_response(user_message)
+    if direct_response:
+        conversation.append(AIMessage(content=direct_response))
+        return direct_response, conversation
 
     result = await graph.ainvoke(
         {
