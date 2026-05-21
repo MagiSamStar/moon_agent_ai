@@ -28,6 +28,12 @@ dotenv.load_dotenv(BASE_DIR / ".env", override=True)
 
 MCP_SERVER = BASE_DIR / "stdio_server.py"
 PYTHON_EXE = os.getenv("MOON_AGENT_PYTHON") or sys.executable
+ENABLE_REFLECTION = os.getenv("ENABLE_REFLECTION", "true").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 # USER_PROFILE = {
 #     "name": "SamStar",
@@ -303,15 +309,20 @@ def build_graph(mcp_client: Client):
 
     workflow.add_node("agent", call_llm)
     workflow.add_node("tool", make_tool_node(mcp_client))
-    workflow.add_node("reflect", reflect_node)
-    workflow.add_edge("reflect", END)
     workflow.add_edge("tool", "agent")
+    if ENABLE_REFLECTION:
+        workflow.add_node("reflect", reflect_node)
+        workflow.add_edge("reflect", END)
+        end_node = "reflect"
+    else:
+        end_node = END
+
     workflow.add_conditional_edges(
         "agent",
         should_continue,
         {
             "continue": "tool",
-            "end": "reflect",
+            "end": end_node,
         },
     )
     workflow.set_entry_point("agent")

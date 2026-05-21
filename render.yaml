@@ -24,6 +24,10 @@ services:
         value: "5"
       - key: CHAT_RATE_LIMIT_WINDOW_HOURS
         value: "24"
+      - key: MOON_DATA_CACHE_TTL_SECONDS
+        value: "10800"
+      - key: ENABLE_REFLECTION
+        value: "false"
       - key: OPENAI_API_KEY
         sync: false
       - key: RAPIDAPI_KEY

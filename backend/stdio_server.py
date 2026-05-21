@@ -72,11 +72,34 @@ def _ssl_verify() -> bool | str:
     return certifi.where()
 
 
+def _cache_key(name: str, lat: str, lon: str) -> str:
+    return f"{name}:{lat}:{lon}"
+
+
+def _get_cached_moon_data(key: str) -> dict[str, Any] | None:
+    cached = moon_data_cache.get(key)
+    if not cached:
+        return None
+    if cached["expires_at"] < time.time():
+        moon_data_cache.pop(key, None)
+        return None
+    return cached["value"]
+
+
+def _set_cached_moon_data(key: str, value: dict[str, Any]) -> None:
+    moon_data_cache[key] = {
+        "expires_at": time.time() + MOON_DATA_CACHE_TTL_SECONDS,
+        "value": value,
+    }
+
+
 CALENDAR_AUTH_TIMEOUT_SECONDS = _env_int("CALENDAR_AUTH_TIMEOUT_SECONDS", 120)
 CALENDAR_API_TIMEOUT_SECONDS = _env_int("CALENDAR_API_TIMEOUT_SECONDS", 30)
+MOON_DATA_CACHE_TTL_SECONDS = _env_int("MOON_DATA_CACHE_TTL_SECONDS", 10800)
 PRODUCTION_DEMO_MODE = _env_bool("PRODUCTION_DEMO_MODE", False)
 CALENDAR_ENABLED = _env_bool("CALENDAR_ENABLED", not PRODUCTION_DEMO_MODE)
 NOTION_ENABLED = _env_bool("NOTION_ENABLED", not PRODUCTION_DEMO_MODE)
+moon_data_cache: dict[str, dict[str, Any]] = {}
 
 
 def _path_from_env(name: str) -> Path | None:
@@ -191,30 +214,19 @@ def _normalize_notion_id(value: str) -> str | None:
 @mcp.tool
 def get_moon() -> dict[str, Any]:
     """Get the current moon phase and illumination data."""
+    lat = os.getenv("MOON_LAT", "51.4768")
+    lon = os.getenv("MOON_LON", "-0.0004")
+    cache_key = _cache_key("get_moon", lat, lon)
+    cached = _get_cached_moon_data(cache_key)
+    if cached is not None:
+        return cached
+
     response = requests.get(
         "https://moon-phase.p.rapidapi.com/basic",
         headers=_rapidapi_headers(),
         params={
-            "lat": os.getenv("MOON_LAT", "51.4768"),
-            "lon": os.getenv("MOON_LON", "-0.0004"),
-            "timestamp": str(int(time.time())),
-        },
-        timeout=20,
-        verify=_ssl_verify(),
-    )
-    response.raise_for_status()
-    return response.json()
-
-
-@mcp.tool
-def get_planet() -> dict[str, Any]:
-    """Get the current planetary moon data, including sign and house details."""
-    response = requests.get(
-        "https://moon-phase.p.rapidapi.com/astrology",
-        headers=_rapidapi_headers(),
-        params={
-            "lat": os.getenv("MOON_LAT", "40.73468964462097"),
-            "lon": os.getenv("MOON_LON", "-74.25255582575559"),
+            "lat": lat,
+            "lon": lon,
             "timestamp": str(int(time.time())),
         },
         timeout=20,
@@ -222,7 +234,36 @@ def get_planet() -> dict[str, Any]:
     )
     response.raise_for_status()
     data = response.json()
-    return data.get("points", {}).get("moon", data)
+    _set_cached_moon_data(cache_key, data)
+    return data
+
+
+@mcp.tool
+def get_planet() -> dict[str, Any]:
+    """Get the current planetary moon data, including sign and house details."""
+    lat = os.getenv("MOON_LAT", "40.73468964462097")
+    lon = os.getenv("MOON_LON", "-74.25255582575559")
+    cache_key = _cache_key("get_planet", lat, lon)
+    cached = _get_cached_moon_data(cache_key)
+    if cached is not None:
+        return cached
+
+    response = requests.get(
+        "https://moon-phase.p.rapidapi.com/astrology",
+        headers=_rapidapi_headers(),
+        params={
+            "lat": lat,
+            "lon": lon,
+            "timestamp": str(int(time.time())),
+        },
+        timeout=20,
+        verify=_ssl_verify(),
+    )
+    response.raise_for_status()
+    data = response.json()
+    moon_data = data.get("points", {}).get("moon", data)
+    _set_cached_moon_data(cache_key, moon_data)
+    return moon_data
 
 
 @mcp.tool

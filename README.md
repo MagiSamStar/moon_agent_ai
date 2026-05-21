@@ -8,6 +8,10 @@ frontend.
 This project is built as a local-first agent demo: a React chat UI talks to a FastAPI backend, the backend runs a LangGraph agent, and the agent calls MCP tools for external integrations.
 ![Moon Agent frontend demo](/docs/moon_agent.png)
 
+## Live Demo
+
+[Try Moon Agent](https://moon-agent-frontend.vercel.app/)
+
 ## Why I Built This
 
 I built the Moon Agent to explore how agentic AI systems can combine reflection, planning, external tools, and personalized workflows into a calm, practical daily assistant.
@@ -270,6 +274,8 @@ MOON_LAT=40.73468964462097
 MOON_LON=-74.25255582575559
 CHAT_RATE_LIMIT=5
 CHAT_RATE_LIMIT_WINDOW_HOURS=24
+MOON_DATA_CACHE_TTL_SECONDS=10800
+ENABLE_REFLECTION=false
 ```
 
 Google Calendar and Notion saves are intentionally disabled for the first production demo. If a user asks to schedule or save something while `PRODUCTION_DEMO_MODE=true`, the backend returns a clear disabled message and still offers copyable guidance. Do not add Google OAuth files or Notion secrets to Render for this demo mode.
@@ -291,6 +297,8 @@ VITE_API_URL=https://your-render-service.onrender.com
 After Vercel deploys, copy the Vercel URL into Render's `ALLOWED_ORIGINS` value and redeploy the backend. Confirm production by opening `https://your-render-service.onrender.com/health` and sending a chat message from the Vercel app without a CORS error.
 
 The public demo limits each visitor IP to `CHAT_RATE_LIMIT` `/chat` requests per `CHAT_RATE_LIMIT_WINDOW_HOURS`. The default is 5 chat requests per 24 hours. The limit is in memory, so it resets when the backend restarts.
+
+Moon API responses are cached in memory for `MOON_DATA_CACHE_TTL_SECONDS` to reduce repeated RapidAPI calls. `ENABLE_REFLECTION=false` skips the extra editor model call in production for faster chat responses.
 
 ## API Endpoints
 
