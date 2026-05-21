@@ -10,11 +10,11 @@ from fastmcp.client.transports import PythonStdioTransport
 from langchain.tools import tool
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
+from openai_client import create_chat_model
 try:
     from .responses import get_direct_response
 except ImportError:
@@ -29,12 +29,19 @@ dotenv.load_dotenv(BASE_DIR / ".env", override=True)
 MCP_SERVER = BASE_DIR / "stdio_server.py"
 PYTHON_EXE = os.getenv("MOON_AGENT_PYTHON") or sys.executable
 
+# USER_PROFILE = {
+#     "name": "SamStar",
+#     "goals": ["study AI", "build portfolio", "job search"],
+#     "preferred_planning_style": "spiritual but practical",
+#     "default_calendar_delay_hours": 2,
+# }
+
 USER_PROFILE = {
-    "name": "SamStar",
-    "goals": ["study AI", "build portfolio", "job search"],
-    "preferred_planning_style": "spiritual but practical",
-    "default_calendar_delay_hours": 2,
-}
+         "name": "Demo User",
+         "goals": ["plan the day", "build focus", "reflect intentionally"],
+         "preferred_planning_style": "spiritual but practical",
+         "default_calendar_delay_hours": 2,
+     }
 
 
 @tool
@@ -79,7 +86,7 @@ tools = [
     create_notion_database_entry,
 ]
 
-llm = ChatOpenAI(model="gpt-5-mini")
+llm = create_chat_model(model="gpt-5-mini")
 
 chat_prompt = ChatPromptTemplate.from_messages(
     [
@@ -88,7 +95,7 @@ chat_prompt = ChatPromptTemplate.from_messages(
             """
 You are Moon Planner Agent, a spiritual but grounded assistant.
 
-You help the user understand current moon energy and turn that guidance into useful daily planning.
+You help the user understand the general current moon energy and turn that guidance into useful daily planning.
 
 You have these tools:
 - get_moon: use for moon phase and illumination.

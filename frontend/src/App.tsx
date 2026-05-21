@@ -59,6 +59,9 @@ type VoiceWindow = Window &
   }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const isLocalApi =
+  API_URL.includes('localhost') || API_URL.includes('127.0.0.1')
+const connectionLabel = isLocalApi ? 'Connected locally' : 'Connected to API'
 
 const initialMessages: ChatMessage[] = [
   {
@@ -93,6 +96,7 @@ function App() {
   const [isListening, setIsListening] = useState(false)
   const [readAloud, setReadAloud] = useState(false)
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     return () => {
@@ -100,6 +104,10 @@ function App() {
       window.speechSynthesis?.cancel()
     }
   }, [])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [messages, isLoading])
 
   function speakAgentResponse(text: string) {
     if (!readAloud || !('speechSynthesis' in window)) return
@@ -220,6 +228,11 @@ function App() {
       })
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const data = (await response.json()) as { detail?: string }
+          throw new Error(data.detail || 'Demo chat limit reached. Please try again later.')
+        }
+
         throw new Error(`Moon Agent API returned ${response.status}`)
       }
 
@@ -243,7 +256,7 @@ function App() {
           ? caughtError.message
           : 'Unable to reach Moon Agent.'
 
-      setError(`${message}. Confirm FastAPI is running at ${API_URL}.`)
+      setError(`${message}. Unable to reach Moon Agent API at ${API_URL}.`)
     } finally {
       setIsLoading(false)
     }
@@ -260,7 +273,7 @@ function App() {
             <span className="brand-orb" />
             <span>Moon Agent</span>
           </div>
-          <div className="status-pill">Local MCP Agent</div>
+          <div className="status-pill">Moon Agent API</div>
         </nav>
 
         <div className="hero-grid">
@@ -315,7 +328,7 @@ function App() {
               >
                 Audio
               </button>
-              <span className="live-dot">Connected locally</span>
+              <span className="live-dot">{connectionLabel}</span>
             </div>
           </div>
 
@@ -378,6 +391,7 @@ function App() {
                 </div>
               </article>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {error && <p className="error-message">{error}</p>}

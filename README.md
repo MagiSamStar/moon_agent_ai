@@ -243,6 +243,55 @@ Run the frontend container:
 docker run -p 5173:80 moon-agent-frontend
 ```
 
+## Production Deployment
+
+This repo is prepared for a first portfolio-demo deployment with the backend on Render and the frontend on Vercel.
+
+### Backend on Render
+
+Deploy the backend as a Render Web Service from `backend/`. You can use the included `render.yaml` blueprint or configure the service manually:
+
+- Environment: Docker
+- Root directory: `backend`
+- Health check path: `/health`
+- Docker start command: handled by `backend/Dockerfile`
+
+Set these Render environment variables:
+
+```env
+OPENAI_API_KEY=your_openai_api_key
+RAPIDAPI_KEY=your_rapidapi_key
+ALLOWED_ORIGINS=https://your-vercel-app.vercel.app
+PRODUCTION_DEMO_MODE=true
+CALENDAR_ENABLED=false
+NOTION_ENABLED=false
+CALENDAR_TIMEZONE=America/New_York
+MOON_LAT=40.73468964462097
+MOON_LON=-74.25255582575559
+CHAT_RATE_LIMIT=5
+CHAT_RATE_LIMIT_WINDOW_HOURS=24
+```
+
+Google Calendar and Notion saves are intentionally disabled for the first production demo. If a user asks to schedule or save something while `PRODUCTION_DEMO_MODE=true`, the backend returns a clear disabled message and still offers copyable guidance. Do not add Google OAuth files or Notion secrets to Render for this demo mode.
+
+### Frontend on Vercel
+
+Deploy the frontend as a Vercel project with:
+
+- Root directory: `frontend`
+- Build command: `npm run build`
+- Output directory: `dist`
+
+Set this Vercel environment variable after the Render backend URL is live:
+
+```env
+VITE_API_URL=https://your-render-service.onrender.com
+```
+
+After Vercel deploys, copy the Vercel URL into Render's `ALLOWED_ORIGINS` value and redeploy the backend. Confirm production by opening `https://your-render-service.onrender.com/health` and sending a chat message from the Vercel app without a CORS error.
+
+The public demo limits each visitor IP to `CHAT_RATE_LIMIT` `/chat` requests per `CHAT_RATE_LIMIT_WINDOW_HOURS`. The default is 5 chat requests per 24 hours. The limit is in memory, so it resets when the backend restarts.
+
 ## API Endpoints
 
 ```http
@@ -273,8 +322,6 @@ Returns backend health.
 2.  Ask the Moon Agent when is the next New or Full Moon.
 3.  Ask the Moon Agent what the current astrological house and sign the Moon is in.
 4.  Ask it to turn the guidance into a practical plan.
-5.  Ask it to save the plan to Notion.
-6.  Ask it to schedule a calendar block.
 
 ## Status
 

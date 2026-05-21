@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import time
 from typing import Any
+import certifi
 import dotenv
 import google_auth_httplib2
 import httplib2
@@ -21,6 +22,8 @@ BACKEND_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BACKEND_DIR.parent
 dotenv.load_dotenv(REPO_ROOT / ".env")
 dotenv.load_dotenv(BACKEND_DIR / ".env", override=True)
+os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+os.environ.setdefault("REQUESTS_CA_BUNDLE", certifi.where())
 
 CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 DEFAULT_TIMEZONE = os.getenv("CALENDAR_TIMEZONE", "America/New_York")
@@ -55,8 +58,25 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _ssl_verify() -> bool | str:
+    value = os.getenv("MOON_AGENT_SSL_VERIFY", "true").strip().lower()
+    if value in {"0", "false", "no", "off"}:
+        return False
+    return certifi.where()
+
+
 CALENDAR_AUTH_TIMEOUT_SECONDS = _env_int("CALENDAR_AUTH_TIMEOUT_SECONDS", 120)
 CALENDAR_API_TIMEOUT_SECONDS = _env_int("CALENDAR_API_TIMEOUT_SECONDS", 30)
+PRODUCTION_DEMO_MODE = _env_bool("PRODUCTION_DEMO_MODE", False)
+CALENDAR_ENABLED = _env_bool("CALENDAR_ENABLED", not PRODUCTION_DEMO_MODE)
+NOTION_ENABLED = _env_bool("NOTION_ENABLED", not PRODUCTION_DEMO_MODE)
 
 
 def _path_from_env(name: str) -> Path | None:
@@ -180,6 +200,7 @@ def get_moon() -> dict[str, Any]:
             "timestamp": str(int(time.time())),
         },
         timeout=20,
+        verify=_ssl_verify(),
     )
     response.raise_for_status()
     return response.json()
@@ -197,6 +218,7 @@ def get_planet() -> dict[str, Any]:
             "timestamp": str(int(time.time())),
         },
         timeout=20,
+        verify=_ssl_verify(),
     )
     response.raise_for_status()
     data = response.json()
@@ -206,6 +228,12 @@ def get_planet() -> dict[str, Any]:
 @mcp.tool
 def create_calendar_event(title: str, description: str, hours_from_now: int = 2) -> str:
     """Create a 30-minute Google Calendar event and return its link."""
+    if not CALENDAR_ENABLED:
+        return (
+            "Google Calendar is disabled in this production demo. "
+            "I can still suggest a schedule you can add manually."
+        )
+
     start_time = datetime.now() + timedelta(hours=hours_from_now)
     end_time = start_time + timedelta(minutes=30)
 
@@ -259,6 +287,12 @@ def create_notion_page(
     parent_page_id: str | None = None,
 ) -> str:
     """Create a Notion page under a shared parent page and return its URL."""
+    if not NOTION_ENABLED:
+        return (
+            "Notion saving is disabled in this production demo. "
+            "I can still format this as a reflection you can copy into Notion."
+        )
+
     parent_id = parent_page_id or os.getenv("NOTION_PARENT_PAGE_ID")
     if not parent_id:
         return (
@@ -307,6 +341,7 @@ def create_notion_page(
         headers=_notion_headers(),
         json=payload,
         timeout=20,
+        verify=_ssl_verify(),
     )
     if response.status_code >= 400:
         return (
@@ -329,6 +364,12 @@ def create_notion_database_entry(
     title_property: str | None = None,
 ) -> str:
     """Create a Notion database row/page and return its URL."""
+    if not NOTION_ENABLED:
+        return (
+            "Notion database saving is disabled in this production demo. "
+            "I can still format this as an entry you can copy into Notion."
+        )
+
     raw_database_id = database_id or os.getenv("NOTION_DATABASE_ID")
     if not raw_database_id:
         return (
@@ -382,6 +423,7 @@ def create_notion_database_entry(
         headers=_notion_headers(),
         json=payload,
         timeout=20,
+        verify=_ssl_verify(),
     )
     if response.status_code >= 400:
         return (

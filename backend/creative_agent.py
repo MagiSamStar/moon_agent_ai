@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI
+from openai_client import create_chat_model
 
 
 class AffirmationCard(BaseModel):
@@ -10,7 +10,7 @@ class AffirmationCard(BaseModel):
     palette: list[str] = Field(description="3-5 hex colors for the card")
 
 
-llm = ChatOpenAI(model="gpt-5-mini")
+llm = create_chat_model(model="gpt-5-mini")
 
 
 async def create_affirmation_card(moon_guidance: str) -> AffirmationCard:

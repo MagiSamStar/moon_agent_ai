@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: moon-agent-backend
+    env: docker
+    rootDir: backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PRODUCTION_DEMO_MODE
+        value: "true"
+      - key: CALENDAR_ENABLED
+        value: "false"
+      - key: NOTION_ENABLED
+        value: "false"
+      - key: CALENDAR_TIMEZONE
+        value: America/New_York
+      - key: MOON_LAT
+        value: "40.73468964462097"
+      - key: MOON_LON
+        value: "-74.25255582575559"
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: CHAT_RATE_LIMIT
+        value: "5"
+      - key: CHAT_RATE_LIMIT_WINDOW_HOURS
+        value: "24"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RAPIDAPI_KEY
+        sync: false

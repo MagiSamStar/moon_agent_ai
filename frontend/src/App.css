@@ -287,7 +287,12 @@ button:nth-child(3) {
 }
 
 .chat-card {
+  display: flex;
+  flex-direction: column;
+  height: 720px;
+  max-height: calc(100vh - 48px);
   padding: 26px;
+  overflow: hidden;
 }
 
 .card-header {
@@ -305,6 +310,24 @@ button:nth-child(3) {
 .messages {
   display: grid;
   gap: 14px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+}
+
+.messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: rgba(88, 75, 92, 0.24);
+  border-radius: 999px;
 }
 
 .message {
@@ -566,6 +589,11 @@ button:nth-child(3) {
     border-radius: 24px;
   }
 
+  .chat-card {
+    height: 680px;
+    max-height: calc(100vh - 20px);
+  }
+
   .hero-grid,
   .workspace-grid {
     grid-template-columns: 1fr;
@@ -610,6 +638,10 @@ button:nth-child(3) {
   .hero-panel,
   .chat-card {
     padding: 18px;
+  }
+
+  .chat-card {
+    height: 640px;
   }
 
   .topbar {
