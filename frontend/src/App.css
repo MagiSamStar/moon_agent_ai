@@ -522,6 +522,20 @@ button:nth-child(3) {
   box-shadow: none;
 }
 
+.mic-button {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  min-width: 48px;
+  aspect-ratio: 1;
+  padding: 0;
+}
+
+.mic-icon {
+  width: 21px;
+  height: 21px;
+}
+
 .voice-toggle {
   padding: 8px 12px;
   font-size: 13px;

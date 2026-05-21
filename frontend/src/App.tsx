@@ -411,13 +411,38 @@ function App() {
             />
             <button
               aria-pressed={isListening}
+              aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
               className={`mic-button ${isListening ? 'is-listening' : ''}`}
               disabled={isLoading}
               onClick={startListening}
               title={isListening ? 'Stop listening' : 'Start voice input'}
               type="button"
             >
-              {isListening ? 'Stop' : 'Mic'}
+              {isListening ? (
+                <span aria-hidden="true">Stop</span>
+              ) : (
+                <svg
+                  aria-hidden="true"
+                  className="mic-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M19 11a7 7 0 0 1-14 0M12 18v3M8 21h8"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+              )}
             </button>
             <button type="submit" disabled={isLoading || !input.trim()}>
               {isLoading ? 'Generating...' : 'Send'}
