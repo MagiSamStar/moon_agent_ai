@@ -59,6 +59,8 @@ FastMCP stdio tool server
 - LangGraph orchestration for model calls, tool routing, and reflection.
 - MCP stdio server for tool isolation.
 - Creative agent for structured affirmation card generation.
+- Journal memory RAG with ChromaDB and OpenAI embeddings.
+- Live moon context and lunar calendar data for the dashboard UI.
 - Moon phase / planetary context through the Moon API.
 - Google Calendar event creation.
 - Notion page and database entry creation.
@@ -73,6 +75,7 @@ FastMCP stdio tool server
 | Frontend            | React 19, Vite, TypeScript, react-markdown, CSS                |
 | Backend API         | Python 3.12, FastAPI, Uvicorn                                  |
 | Agent orchestration | LangChain, LangGraph, OpenAI chat model via `langchain-openai` |
+| Memory              | ChromaDB persistent vector store, OpenAI embeddings             |
 | Tool layer          | FastMCP stdio server, MCP tool calls                           |
 | Creative layer      | Structured-output creative agent for affirmation cards         |
 | Integrations        | Google Calendar API, Notion API, RapidAPI Moon Phase API       |
@@ -85,6 +88,7 @@ Moon_Agent/
   backend/
     app.py               # FastAPI backend
     creative_agent.py    # Structured affirmation card agent
+    journal_memory.py    # ChromaDB journal memory storage and retrieval
     moon_agent_core.py   # LangGraph agent and MCP client setup
     stdio_server.py      # FastMCP tool server
     run_cli.py           # CLI runner for local testing
@@ -131,6 +135,9 @@ CALENDAR_TIMEZONE=America/New_York
 MOON_LAT=40.73468964462097
 MOON_LON=-74.25255582575559
 OPENAI_API_KEY=your_openai_api_key
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+CHROMA_DB_PATH=backend/chroma_db
+JOURNAL_COLLECTION_NAME=moon_journal_memory
 ```
 
 For Google Calendar, keep OAuth files local only. By default, the backend looks for these files in `backend/` first and then in the repository root:
@@ -275,6 +282,7 @@ MOON_LON=-74.25255582575559
 CHAT_RATE_LIMIT=5
 CHAT_RATE_LIMIT_WINDOW_HOURS=24
 MOON_DATA_CACHE_TTL_SECONDS=10800
+MOON_CALENDAR_CACHE_TTL_SECONDS=10800
 ENABLE_REFLECTION=false
 ```
 
@@ -307,6 +315,53 @@ GET /health
 ```
 
 Returns backend health.
+
+```http
+GET /moon-context
+```
+
+Returns normalized live moon context for the frontend side rail, including
+phase, illumination, astrology fields when available, upcoming moon dates when
+provided by RapidAPI, and a short energy theme.
+
+```http
+GET /moon-calendar?year=2026&month=5
+```
+
+Returns cached daily moon phase data for the requested month. The frontend uses
+this for the lunar calendar screen. Monthly results are cached in memory using
+`MOON_CALENDAR_CACHE_TTL_SECONDS`.
+
+```http
+POST /journal
+```
+
+Saves a personal journal entry to ChromaDB. The request accepts `text`,
+optional `mood`, and optional `tags`. The backend adds `created_at`,
+`entry_type="journal"`, and best-effort moon phase metadata, then stores the
+entry text, metadata, unique id, and OpenAI embedding in the
+`moon_journal_memory` collection.
+
+```http
+GET /journal?limit=10
+```
+
+Returns recent journal entries newest first.
+
+```http
+POST /journal/search
+```
+
+Embeds a search query and returns the top relevant journal entries from
+ChromaDB. The chat endpoint uses this same retrieval path before generating a
+Moon Agent response: it searches the user's message against journal memory,
+injects up to three relevant entries as private context, and continues normally
+when no memories are found.
+
+Journal memory is personal-memory RAG, not document Q&A. The assistant should
+use retrieved memories gently and naturally, without dumping all saved entries
+or exposing raw metadata unless it helps the request. Local Chroma data is
+stored by default in `backend/chroma_db`, which is ignored by git.
 
 ## Current Limitations
 

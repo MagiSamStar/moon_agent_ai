@@ -7,6 +7,7 @@ backend/token.json
 backend/moon_agent.json
 __pycache__/
 backend/__pycache__/
+backend/chroma_db/
 *.py[cod]
 *.log
 venv/

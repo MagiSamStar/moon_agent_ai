@@ -227,6 +227,7 @@ class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     user_profile: dict
     plan_preview: Optional[dict]
+    journal_context: Optional[str]
 
 
 def _jsonable(value: Any) -> Any:
@@ -283,6 +284,7 @@ def make_tool_node(mcp_client: Client):
 async def call_llm(state: AgentState):
     """Invoke the model with the current conversation state."""
     user_profile = state.get("user_profile", USER_PROFILE)
+    journal_context = state.get("journal_context")
     profile_message = SystemMessage(
         content=f"""
 User profile:
@@ -291,9 +293,13 @@ User profile:
 Use this profile to personalize the moon planning guidance.
 """
     )
+    context_messages: list[BaseMessage] = [profile_message]
+
+    if journal_context:
+        context_messages.append(SystemMessage(content=journal_context))
 
     response = await model_react.ainvoke(
-        {"scratch_pad": [profile_message] + list(state["messages"])}
+        {"scratch_pad": context_messages + list(state["messages"])}
     )
 
     return {"messages": [response]}
@@ -342,7 +348,12 @@ async def create_moon_graph():
     return graph, client
 
 
-async def process_message(graph, conversation, user_message: str):
+async def process_message(
+    graph,
+    conversation,
+    user_message: str,
+    journal_context: str = "",
+):
     conversation.append(HumanMessage(content=user_message))
 
     direct_response = get_direct_response(user_message)
@@ -355,6 +366,7 @@ async def process_message(graph, conversation, user_message: str):
             "messages": conversation,
             "user_profile": USER_PROFILE,
             "plan_preview": None,
+            "journal_context": journal_context,
         }
     )
 
