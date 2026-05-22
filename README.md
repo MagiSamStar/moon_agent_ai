@@ -75,7 +75,7 @@ FastMCP stdio tool server
 | Frontend            | React 19, Vite, TypeScript, react-markdown, CSS                |
 | Backend API         | Python 3.12, FastAPI, Uvicorn                                  |
 | Agent orchestration | LangChain, LangGraph, OpenAI chat model via `langchain-openai` |
-| Memory              | ChromaDB persistent vector store, OpenAI embeddings             |
+| Memory              | ChromaDB persistent vector store, OpenAI embeddings            |
 | Tool layer          | FastMCP stdio server, MCP tool calls                           |
 | Creative layer      | Structured-output creative agent for affirmation cards         |
 | Integrations        | Google Calendar API, Notion API, RapidAPI Moon Phase API       |
@@ -373,10 +373,9 @@ stored by default in `backend/chroma_db`, which is ignored by git.
 
 ## Roadmap
 
-- Add a RAG layer for saved reflections, goals, and previous plans.
+- Clean up Mobile View
+- Finish uop Daily Planning, Affirmation, Save readings Tab
 - Add production-ready auth and Google OAuth handling.
-- Deploy React frontend to Vercel or Netlify.
-- Deploy FastAPI backend to Railway, Render, Fly.io, AWS, or a VPS.
 - Add a richer dashboard for moon phase, tasks, calendar blocks, and Notion saves.
 
 ## Interview Demo Flow
