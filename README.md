@@ -6,7 +6,6 @@ The Moon Agent follows a ReAct-style pattern: the model reasons about the reques
 frontend.
 
 This project is built as a local-first agent demo: a React chat UI talks to a FastAPI backend, the backend runs a LangGraph agent, and the agent calls MCP tools for external integrations.
-![Moon Agent frontend demo](/docs/moon_agent.png)
 
 ## Live Demo
 
