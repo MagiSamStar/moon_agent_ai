@@ -16,6 +16,7 @@ dotenv.load_dotenv(BASE_DIR / ".env", override=True)
 
 DEFAULT_COLLECTION_NAME = "moon_journal_memory"
 DEFAULT_CHROMA_PATH = BASE_DIR / "chroma_db"
+RECOVERED_CHROMA_SUFFIX = "_recovered"
 
 _collection = None
 _embedding_model = None
@@ -32,25 +33,43 @@ def _resolve_chroma_path() -> Path:
     return REPO_ROOT / path
 
 
+def _create_collection(chroma_path: Path):
+    import chromadb
+    from chromadb.config import Settings
+
+    chroma_path.mkdir(parents=True, exist_ok=True)
+    client = chromadb.PersistentClient(
+        path=str(chroma_path),
+        settings=Settings(anonymized_telemetry=False),
+    )
+    return client.get_or_create_collection(
+        name=os.getenv("JOURNAL_COLLECTION_NAME", DEFAULT_COLLECTION_NAME),
+        metadata={"description": "Moon Agent personal journal memories"},
+    )
+
+
+def _recoverable_chroma_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "could not connect to tenant" in message or "default_tenant" in message
+
+
+def _recovered_chroma_path(chroma_path: Path) -> Path:
+    return chroma_path.with_name(f"{chroma_path.name}{RECOVERED_CHROMA_SUFFIX}")
+
+
 def _get_collection():
     global _collection
 
     if _collection is not None:
         return _collection
 
-    import chromadb
-    from chromadb.config import Settings
-
     chroma_path = _resolve_chroma_path()
-    chroma_path.mkdir(parents=True, exist_ok=True)
-    client = chromadb.PersistentClient(
-        path=str(chroma_path),
-        settings=Settings(anonymized_telemetry=False),
-    )
-    _collection = client.get_or_create_collection(
-        name=os.getenv("JOURNAL_COLLECTION_NAME", DEFAULT_COLLECTION_NAME),
-        metadata={"description": "Moon Agent personal journal memories"},
-    )
+    try:
+        _collection = _create_collection(chroma_path)
+    except Exception as error:
+        if not _recoverable_chroma_error(error):
+            raise
+        _collection = _create_collection(_recovered_chroma_path(chroma_path))
     return _collection
 
 

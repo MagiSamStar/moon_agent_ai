@@ -16,6 +16,8 @@ type ChatMessage = {
   role: 'user' | 'agent'
   content: string
   affirmationCard?: AffirmationCard | null
+  suggestedTasks?: string[]
+  tasksAdded?: boolean
 }
 
 type AffirmationCard = {
@@ -61,6 +63,16 @@ type MoonCalendar = {
   year: number
   month: number
   days: MoonCalendarDay[]
+}
+
+type DailyTask = {
+  id: string
+  title: string
+  category: string
+  source: 'manual' | 'agent'
+  moonPhase?: string
+  createdAt: string
+  completed: boolean
 }
 
 type CalendarCell =
@@ -120,10 +132,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const isLocalApi =
   API_URL.includes('localhost') || API_URL.includes('127.0.0.1')
 const connectionLabel = isLocalApi ? 'Local API' : 'Live API'
+const DAILY_TASKS_STORAGE_KEY = 'moon-agent-daily-tasks'
 
 const navItems: { id: Section; label: string; icon: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: 'D' },
-  { id: 'guidance', label: 'Moon Guidance', icon: 'M' },
+  { id: 'guidance', label: 'Moonscope', icon: 'M' },
   { id: 'planning', label: 'Daily Planning', icon: 'P' },
   { id: 'journal', label: 'Journal', icon: 'J' },
   { id: 'affirmations', label: 'Affirmations', icon: 'A' },
@@ -150,6 +163,12 @@ const prompts = [
 const moodOptions = ['Grateful', 'Focused', 'Hopeful', 'Tender', 'Energized']
 const monthFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'long',
+  year: 'numeric',
+})
+const weekdayFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
   year: 'numeric',
 })
 
@@ -199,6 +218,118 @@ function formatIllumination(value: number | null | undefined) {
   return `${Math.round(normalized)}% illuminated`
 }
 
+function phaseReading(phase: string) {
+  const normalized = phase.toLowerCase()
+  if (normalized.includes('new')) {
+    return {
+      soulMessage:
+        'This moon opens a quiet doorway. Let yourself begin again without needing to prove that the past was wrong.',
+      healingFocus:
+        'Plant one honest intention and protect it from noise, comparison, and urgency.',
+      reflectionPrompt:
+        'What part of me is ready for a fresh beginning, even if it still feels tender?',
+      affirmation: 'I am allowed to begin softly and trust what is taking root.',
+    }
+  }
+  if (normalized.includes('waxing')) {
+    return {
+      soulMessage:
+        'This moon supports growth through devotion. Small choices matter today, especially the ones that help you keep faith with yourself.',
+      healingFocus:
+        'Build momentum without abandoning your nervous system. Let progress feel steady instead of forced.',
+      reflectionPrompt:
+        'Where am I ready to give consistent energy without rushing the outcome?',
+      affirmation: 'I honor my growth through steady, loving action.',
+    }
+  }
+  if (normalized.includes('full')) {
+    return {
+      soulMessage:
+        'This moon illuminates what is complete, what is true, and what can no longer be hidden from your heart.',
+      healingFocus:
+        'Let clarity be gentle. Celebrate what has bloomed and release the pressure to hold everything at once.',
+      reflectionPrompt:
+        'What truth is becoming visible, and how can I meet it with compassion?',
+      affirmation: 'I welcome clarity and release what no longer needs my energy.',
+    }
+  }
+  if (normalized.includes('waning')) {
+    return {
+      soulMessage:
+        'This moon invites release. You do not have to carry every old pattern into the next version of your life.',
+      healingFocus:
+        'Make space through forgiveness, rest, and honest simplification.',
+      reflectionPrompt:
+        'What am I ready to lay down so my spirit can breathe more freely?',
+      affirmation: 'I release with grace and return to what restores me.',
+    }
+  }
+
+  return {
+    soulMessage:
+      'The moon invites you to listen inward before choosing your next step. There is wisdom in moving with the rhythm you actually have today.',
+    healingFocus:
+      'Stay close to your body, your truth, and one grounded action that supports your peace.',
+    reflectionPrompt: 'What does my inner self need me to notice today?',
+    affirmation: 'I trust my inner timing and move with gentle awareness.',
+  }
+}
+
+function signReading(sign?: string | null) {
+  const normalized = sign?.toLowerCase()
+  const themes: Record<string, string> = {
+    aries: 'courage, honest desire, and clean action',
+    taurus: 'stability, self-worth, and devotion to what nourishes you',
+    gemini: 'curiosity, expression, and the stories you are ready to rewrite',
+    cancer: 'emotional safety, tenderness, and the wisdom of your inner home',
+    leo: 'creative courage, visibility, and heart-led confidence',
+    virgo: 'healing through small rituals, discernment, and sacred order',
+    libra: 'balance, relational healing, and choices that restore harmony',
+    scorpio: 'deep release, emotional truth, and quiet transformation',
+    sagittarius: 'faith, perspective, and the freedom to seek wider meaning',
+    capricorn: 'grounded commitment, maturity, and devotion to the long path',
+    aquarius: 'liberation, future vision, and honoring your authentic frequency',
+    pisces: 'intuition, compassion, dreams, and spiritual surrender',
+  }
+
+  if (normalized && themes[normalized]) return themes[normalized]
+  return 'inner listening, emotional clarity, and the medicine of the present moment'
+}
+
+function houseReading(house?: string | null) {
+  const houses: Record<string, string> = {
+    '1': 'your identity, body, and personal renewal',
+    '2': 'self-worth, money, values, and emotional security',
+    '3': 'communication, learning, siblings, and daily thought patterns',
+    '4': 'home, ancestry, belonging, and private emotional healing',
+    '5': 'creativity, joy, romance, and the courage to be seen',
+    '6': 'wellness, routines, service, and the rituals that sustain you',
+    '7': 'partnerships, boundaries, repair, and mutual care',
+    '8': 'shadow work, intimacy, grief, and transformation',
+    '9': 'faith, wisdom, travel, study, and spiritual meaning',
+    '10': 'calling, visibility, leadership, and long-term direction',
+    '11': 'community, friendship, hopes, and collective belonging',
+    '12': 'rest, dreams, closure, intuition, and spiritual protection',
+  }
+
+  return house ? houses[house] : undefined
+}
+
+function createTaskId() {
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function loadStoredTasks(): DailyTask[] {
+  if (typeof window === 'undefined') return []
+
+  try {
+    const storedTasks = window.localStorage.getItem(DAILY_TASKS_STORAGE_KEY)
+    return storedTasks ? (JSON.parse(storedTasks) as DailyTask[]) : []
+  } catch {
+    return []
+  }
+}
+
 function App() {
   const [activeSection, setActiveSection] = useState<Section>('dashboard')
   const [input, setInput] = useState('')
@@ -225,11 +356,17 @@ function App() {
   const [moonCalendar, setMoonCalendar] = useState<MoonCalendar | null>(null)
   const [calendarError, setCalendarError] = useState('')
   const [isCalendarLoading, setIsCalendarLoading] = useState(false)
+  const [dailyTasks, setDailyTasks] = useState<DailyTask[]>(() => loadStoredTasks())
+  const [newTaskText, setNewTaskText] = useState('')
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   const calendarTitle = monthFormatter.format(calendarDate)
   const phase = moonContext?.phase || 'Moon phase unavailable'
+  const todayLabel = weekdayFormatter.format(new Date())
+  const completedTaskCount = dailyTasks.filter((task) => task.completed).length
+  const activeTask = dailyTasks.find((task) => !task.completed)
+  const focusedHours = completedTaskCount ? (completedTaskCount * 1.5).toFixed(1) : '0'
 
   const calendarCells = useMemo<CalendarCell[]>(() => {
     const year = calendarDate.getFullYear()
@@ -274,6 +411,10 @@ function App() {
       void loadMoonCalendar(calendarDate)
     }
   }, [activeSection, calendarDate])
+
+  useEffect(() => {
+    window.localStorage.setItem(DAILY_TASKS_STORAGE_KEY, JSON.stringify(dailyTasks))
+  }, [dailyTasks])
 
   async function loadMoonContext() {
     setMoonError('')
@@ -511,6 +652,7 @@ function App() {
       const data = (await response.json()) as {
         response?: string
         affirmation_card?: AffirmationCard | null
+        suggested_tasks?: string[]
       }
       const content = data.response || 'Moon Agent returned an empty response.'
       setMessages((current) => [
@@ -519,6 +661,8 @@ function App() {
           role: 'agent',
           content,
           affirmationCard: data.affirmation_card || null,
+          suggestedTasks: data.suggested_tasks || [],
+          tasksAdded: false,
         },
       ])
       speakAgentResponse(content)
@@ -542,6 +686,67 @@ function App() {
     setCalendarDate(
       (current) => new Date(current.getFullYear(), current.getMonth() + delta, 1),
     )
+  }
+
+  function addManualTask(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const title = newTaskText.trim()
+    if (!title) return
+
+    setDailyTasks((current) => [
+      ...current,
+      {
+        id: createTaskId(),
+        title,
+        category: 'Personal',
+        source: 'manual',
+        moonPhase: phase,
+        createdAt: new Date().toISOString(),
+        completed: false,
+      },
+    ])
+    setNewTaskText('')
+  }
+
+  function toggleTask(taskId: string) {
+    setDailyTasks((current) =>
+      current.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task,
+      ),
+    )
+  }
+
+  function addAgentTasks(messageIndex: number, suggestedTasks: string[]) {
+    const cleanedTasks = suggestedTasks
+      .map((task) => task.trim())
+      .filter(Boolean)
+
+    if (!cleanedTasks.length) return
+
+    setDailyTasks((current) => {
+      const existingTitles = new Set(
+        current.map((task) => task.title.trim().toLowerCase()),
+      )
+      const newTasks = cleanedTasks
+        .filter((task) => !existingTitles.has(task.toLowerCase()))
+        .map((task) => ({
+          id: createTaskId(),
+          title: task,
+          category: 'Moon Agent',
+          source: 'agent' as const,
+          moonPhase: phase,
+          createdAt: new Date().toISOString(),
+          completed: false,
+        }))
+
+      return [...current, ...newTasks]
+    })
+    setMessages((current) =>
+      current.map((message, index) =>
+        index === messageIndex ? { ...message, tasksAdded: true } : message,
+      ),
+    )
+    setActiveSection('planning')
   }
 
   function renderJournalEntry(entry: JournalEntry) {
@@ -568,23 +773,7 @@ function App() {
           <span className="status-chip">{connectionLabel}</span>
         </header>
 
-        <section className="moon-context-card">
-          <div className="symbol-pill">M</div>
-          <div>
-            <h2>{phase} Context</h2>
-            <p>
-              {moonContext
-                ? `${formatIllumination(moonContext.illumination)}. ${moonContext.energy_theme}`
-                : moonError || 'Loading live moon context...'}
-            </p>
-            <div className="tag-row">
-              <span>Manifestation</span>
-              <span>Completion</span>
-              <span>Reflection</span>
-            </div>
-          </div>
-        </section>
-
+      
         <section className="chat-panel">
           <div className="messages">
             {messages.map((message, index) => (
@@ -620,6 +809,27 @@ function App() {
                       <h3>{message.affirmationCard.card_title}</h3>
                       <strong>{message.affirmationCard.affirmation}</strong>
                       <span>{message.affirmationCard.caption}</span>
+                    </div>
+                  )}
+                  {!!message.suggestedTasks?.length && (
+                    <div className="task-transfer">
+                      <p>
+                        {message.tasksAdded
+                          ? 'Added to Daily Planning.'
+                          : `${message.suggestedTasks.length} suggested task${
+                              message.suggestedTasks.length === 1 ? '' : 's'
+                            } found.`}
+                      </p>
+                      {!message.tasksAdded && (
+                        <button
+                          onClick={() =>
+                            addAgentTasks(index, message.suggestedTasks || [])
+                          }
+                          type="button"
+                        >
+                          Add to Daily Planning
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -680,6 +890,225 @@ function App() {
               {isLoading ? 'Generating...' : 'Send'}
             </button>
           </form>
+        </section>
+      </section>
+    )
+  }
+
+  function renderPlanning() {
+    return (
+      <section className="screen planning-screen">
+        <header className="screen-header">
+          <div>
+            <h1>Daily Planning</h1>
+            <p>AI-powered task management aligned with lunar energies</p>
+          </div>
+          <span className="status-chip">{todayLabel}</span>
+        </header>
+
+        <section className="planning-roadmap">
+          <div className="symbol-pill">M</div>
+          <div>
+            <h2>AI Daily Roadmap</h2>
+            <p>
+              {moonContext
+                ? `Based on the current ${phase}, today supports: ${moonContext.energy_theme}`
+                : moonError || 'Loading live lunar guidance for today...'}
+            </p>
+            <div className="tag-row">
+              <span>High Energy Day</span>
+              <span>Focus on Completion</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="planning-stats" aria-label="Daily planning stats">
+          <div className="stat-card">
+            <span>Done</span>
+            <strong>
+              {completedTaskCount}/{dailyTasks.length}
+            </strong>
+            <small>Tasks Complete</small>
+          </div>
+          <div className="stat-card">
+            <span>Moon</span>
+            <strong>
+              {moonContext?.illumination === null || moonContext?.illumination === undefined
+                ? 'Live'
+                : `${Math.round(
+                    moonContext.illumination <= 1
+                      ? moonContext.illumination * 100
+                      : moonContext.illumination,
+                  )}%`}
+            </strong>
+            <small>Lunar Alignment</small>
+          </div>
+          <div className="stat-card">
+            <span>Time</span>
+            <strong>{focusedHours}h</strong>
+            <small>Focused Time</small>
+          </div>
+        </section>
+
+        <form className="task-entry-panel" onSubmit={addManualTask}>
+          <input
+            onChange={(event) => setNewTaskText(event.target.value)}
+            placeholder="Add a new task..."
+            value={newTaskText}
+          />
+          <button disabled={!newTaskText.trim()} type="submit">
+            + Add
+          </button>
+        </form>
+
+        <section className="task-section">
+          <h2>Today's Tasks</h2>
+          <div className="task-list">
+            {dailyTasks.map((task) => (
+              <article
+                className={task.completed ? 'task-card completed' : 'task-card'}
+                key={task.id}
+              >
+                <button
+                  aria-label={
+                    task.completed ? `Mark ${task.title} incomplete` : `Complete ${task.title}`
+                  }
+                  className={task.completed ? 'task-check done' : 'task-check'}
+                  onClick={() => toggleTask(task.id)}
+                  type="button"
+                />
+                <div className="task-details">
+                  <strong>{task.title}</strong>
+                  <div className="task-chips">
+                    <span className="task-chip">{task.category}</span>
+                    {task.source === 'agent' && (
+                      <span className="task-chip lunar">Moon Agent</span>
+                    )}
+                    {task.moonPhase && <span className="task-chip">{task.moonPhase}</span>}
+                  </div>
+                </div>
+              </article>
+            ))}
+            {!dailyTasks.length && (
+              <p className="muted-text">
+                No tasks yet. Add one above or transfer tasks from Moon Agent.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="panel recommended-schedule">
+          <h2>Recommended Schedule</h2>
+          <div className="schedule-list">
+            <div className="schedule-row">
+              <span className="schedule-time">9:00 - 11:00</span>
+              <div>
+                <strong>
+                  Deep Work - {activeTask ? activeTask.title : 'Set your priority task'}
+                </strong>
+                <small>Peak lunar energy</small>
+              </div>
+            </div>
+            <div className="schedule-row">
+              <span className="schedule-time">11:00 - 12:00</span>
+              <div>
+                <strong>Reflection - Review goals</strong>
+                <small>Ground the next step</small>
+              </div>
+            </div>
+            <div className="schedule-row">
+              <span className="schedule-time">14:00 - 16:00</span>
+              <div>
+                <strong>Collaboration - Team session</strong>
+                <small>Share progress and adjust priorities</small>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    )
+  }
+
+  function renderMoonscope() {
+    const reading = phaseReading(phase)
+    const signTheme = signReading(moonContext?.sign)
+    const houseTheme = houseReading(moonContext?.house)
+
+    return (
+      <section className="screen moonscope-screen">
+        <header className="screen-header">
+          <div>
+            <h1>Moonscope</h1>
+            <p>A daily moon reading for reflection, healing, and soul alignment</p>
+          </div>
+          <span className="status-chip">{todayLabel}</span>
+        </header>
+
+        <section className="moonscope-hero">
+          <div className={`phase-visual ${phaseClass(phase)}`} />
+          <div>
+            <p className="coming-soon-kicker">Today's reading</p>
+            <h2>
+              {moonContext?.sign
+                ? `${phase} in ${moonContext.sign}`
+                : phase}
+            </h2>
+            <p>
+              {moonContext
+                ? `${formatIllumination(moonContext.illumination)}. This moonscope centers ${signTheme}.`
+                : moonError || 'Loading the current moon reading...'}
+            </p>
+            <div className="tag-row">
+              <span>{moonContext?.sign || 'Moon sign pending'}</span>
+              <span>{moonContext?.house ? `House ${moonContext.house}` : 'House pending'}</span>
+              <span>{moonContext?.energy_theme || 'Live moon energy'}</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="moonscope-grid">
+          <article className="panel moonscope-card wide">
+            <span>Soul Message</span>
+            <h2>What the moon is asking you to hear</h2>
+            <p>{reading.soulMessage}</p>
+          </article>
+
+          <article className="panel moonscope-card">
+            <span>Healing Focus</span>
+            <h2>Where to soften</h2>
+            <p>{reading.healingFocus}</p>
+          </article>
+
+          <article className="panel moonscope-card">
+            <span>Zodiac Current</span>
+            <h2>{moonContext?.sign ? `Moon in ${moonContext.sign}` : 'Moon sign pending'}</h2>
+            <p>
+              Today's emotional weather moves through {signTheme}. Let that theme
+              guide how you respond to yourself and others.
+            </p>
+          </article>
+
+          <article className="panel moonscope-card">
+            <span>House Theme</span>
+            <h2>{moonContext?.house ? `House ${moonContext.house}` : 'House pending'}</h2>
+            <p>
+              {houseTheme
+                ? `This energy may show up through ${houseTheme}.`
+                : 'The house placement is still loading, so stay with the broader moon message for now.'}
+            </p>
+          </article>
+
+          <article className="panel moonscope-card">
+            <span>Reflection Prompt</span>
+            <h2>Journal with the moon</h2>
+            <p>{reading.reflectionPrompt}</p>
+          </article>
+
+          <article className="panel moonscope-card affirmation">
+            <span>Affirmation</span>
+            <h2>Healing words for today</h2>
+            <p>{reading.affirmation}</p>
+          </article>
         </section>
       </section>
     )
@@ -832,24 +1261,24 @@ function App() {
               ) : (
                 <div
                   className={`calendar-cell ${
-                    cell.day?.date === todayKey ? 'today' : ''
+                    cell.day.date === todayKey ? 'today' : ''
                   }`}
                   key={cell.key}
                 >
                   <div className="cell-top">
-                    <span>{cell.day?.day}</span>
+                    <span>{cell.day.day}</span>
                     <span
-                      className={`mini-moon ${phaseClass(cell.day?.phase || '')}`}
-                      title={cell.day?.phase}
+                      className={`mini-moon ${phaseClass(cell.day.phase)}`}
+                      title={cell.day.phase}
                     />
                   </div>
-                  {cell.day?.phase.toLowerCase().includes('new') && (
+                  {cell.day.phase.toLowerCase().includes('new') && (
                     <span className="event-chip lunar">New Moon Ritual</span>
                   )}
-                  {cell.day?.phase.toLowerCase().includes('full') && (
+                  {cell.day.phase.toLowerCase().includes('full') && (
                     <span className="event-chip lunar">Full Moon Reflection</span>
                   )}
-                  {cell.day?.day === 24 && <span className="event-chip">Journaling</span>}
+                  {cell.day.day === 24 && <span className="event-chip">Journaling</span>}
                 </div>
               ),
             )}
@@ -873,7 +1302,7 @@ function App() {
           <h2>{title} is on the roadmap</h2>
           <p>
             This section is not active yet. For now, use the Dashboard, Journal,
-            and Calendar tabs for the live Moon Agent experience.
+            Calendar, and Daily Planning tabs for the live Moon Agent experience.
           </p>
         </section>
       </section>
@@ -882,13 +1311,11 @@ function App() {
 
   function renderActiveScreen() {
     if (activeSection === 'dashboard') return renderDashboard()
+    if (activeSection === 'planning') return renderPlanning()
     if (activeSection === 'journal') return renderJournal()
     if (activeSection === 'calendar') return renderCalendar()
     if (activeSection === 'guidance') {
-      return renderPlaceholder('Moon Guidance', 'Understand the current lunar energy.')
-    }
-    if (activeSection === 'planning') {
-      return renderPlaceholder('Daily Planning', 'Build a grounded plan for today.')
+      return renderMoonscope()
     }
     if (activeSection === 'affirmations') {
       return renderPlaceholder('Affirmations', 'Create a personalized affirmation card.')
@@ -928,46 +1355,25 @@ function App() {
 
       <aside className="right-rail">
         <section className="rail-card phase-card">
-          <p>Current Phase</p>
+          <p>
+            {moonContext?.sign ? `Current Moon in ${moonContext.sign}` : 'Current Moon'}
+          </p>
           <div className={`phase-visual ${phaseClass(phase)}`} />
           <h2>{phase}</h2>
           <span>{formatIllumination(moonContext?.illumination)}</span>
-          <div className="rail-divider" />
-          <small>
-            {moonContext?.next_full_moon
-              ? `Full Moon: ${moonContext.next_full_moon}`
-              : moonContext?.next_new_moon
-                ? `New Moon: ${moonContext.next_new_moon}`
-                : moonError || 'Live moon event loading'}
-          </small>
         </section>
 
         <section className="rail-card">
-          <h3>Lunar Energy</h3>
-          <p>{moonContext?.energy_theme || 'Loading current moon guidance...'}</p>
-        </section>
-
-        <section className="rail-card">
-          <h3>Astrology Focus</h3>
+          <h3>Energy Theme</h3>
           <p>
-            {moonContext?.sign
-              ? `Moon in ${moonContext.sign}${moonContext.house ? `, house ${moonContext.house}` : ''}.`
-              : 'Sign and house data will appear when available.'}
+            {moonContext?.energy_theme ||
+              moonError ||
+              'Live lunar guidance will appear when the backend is available.'}
           </p>
         </section>
 
-        <section className="rail-card">
-          <h3>Emotional Themes</h3>
-          <div className="theme-tags">
-            <span>Clarity</span>
-            <span>Confidence</span>
-            <span>Completion</span>
-            <span>Gratitude</span>
-          </div>
-        </section>
-
         <section className="rail-card quote">
-          <p>"I am aligned with the rhythms of nature. My intentions are manifesting beautifully."</p>
+          <p>"Make the plan gentle enough to begin, and clear enough to complete."</p>
         </section>
       </aside>
     </main>

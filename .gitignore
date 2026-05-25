@@ -8,6 +8,7 @@ backend/moon_agent.json
 __pycache__/
 backend/__pycache__/
 backend/chroma_db/
+backend/chroma_db_recovered/
 *.py[cod]
 *.log
 venv/

@@ -1,6 +1,6 @@
 # Moon Agent
 
-Moon Agent is a full-stack AI planning assistant that transforms live moon context into grounded daily guidance, practical action plans, and optional saves to Notion or Google Calendar.
+Moon Agent is a full-stack AI planning and reflective Journal assistant that transforms live moon context into grounded daily guidance, practical action plans,reflective patterns over time and optional saves to Notion or Google Calendar.
 
 The Moon Agent follows a ReAct-style pattern: the model reasons about the request, chooses tools when needed, observes tool outputs, and then produces a grounded response. A final reflection node edits the response for clarity, tone, and readability before it is returned to the
 frontend.
@@ -25,6 +25,8 @@ The project helped me deepen my understanding of:
 - React + FastAPI full-stack AI integration
 - LLM reflection and tool routing patterns
 - Fast MCP Stdio Server
+- Local vector memory with ChromaDB and OpenAI embeddings.
+- Moon-aware UI design for planning, journaling, lunar calendar, and daily readings.
 - Optimizing the chat flow with a lightweight direct-response layer for simple intents, reducing unnecessary LLM calls for greetings.
 
 ## Architecture
@@ -47,20 +49,24 @@ FastMCP stdio tool server
         +--> Google Calendar integration
         +--> Notion page + database integration
         +--> Creative affirmation card agent
-        +--> Future RAG / memory layer
+        +--> Journal memory RAG with ChromaDB
 ```
 
 ## Features
 
 - Chat-based Moon Agent frontend built with React, Vite, and TypeScript.
 - Browser voice input for dictating prompts, with optional read-aloud responses.
-- FastAPI backend exposing `/chat`, `/affirmation-card`, and `/health`.
+- FastAPI backend exposing chat, moon context, lunar calendar, journal memory, and affirmation card endpoints.
 - LangGraph orchestration for model calls, tool routing, and reflection.
 - MCP stdio server for tool isolation.
 - Creative agent for structured affirmation card generation.
 - Journal memory RAG with ChromaDB and OpenAI embeddings.
 - Live moon context and lunar calendar data for the dashboard UI.
-- Moon phase / planetary context through the Moon API.
+- Moonscope tab with a structured daily moon reading for spiritual reflection and soul healing.
+- Daily Planning tab with manual tasks, completion tracking, local persistence, and agent-suggested task transfer.
+- Moon phase, illumination, house, and zodiac context through the RapidAPI Moon Phase API.
+- Zodiac sign fallback derived from RapidAPI moon longitude when the API does not return a direct sign name.
+- Journal memory recovery fallback for local Chroma tenant issues.
 - Google Calendar event creation.
 - Notion page and database entry creation.
 - Markdown chat rendering with clickable links.
@@ -96,7 +102,7 @@ Moon_Agent/
     Dockerfile           # Backend container image
     .dockerignore        # Backend Docker build exclusions
   frontend/
-    src/App.tsx          # React chat UI
+    src/App.tsx          # React app shell, chat, Moonscope, planning, journal, calendar
     src/App.css          # Frontend styling
     .env.example         # Frontend environment template
     package.json         # Frontend dependencies/scripts
@@ -320,8 +326,9 @@ GET /moon-context
 ```
 
 Returns normalized live moon context for the frontend side rail, including
-phase, illumination, astrology fields when available, upcoming moon dates when
-provided by RapidAPI, and a short energy theme.
+phase, illumination, astrology fields, upcoming moon dates when provided by
+RapidAPI, and a short energy theme. If RapidAPI returns moon longitude without
+a sign name, the backend derives the zodiac sign from longitude.
 
 ```http
 GET /moon-calendar?year=2026&month=5
@@ -360,7 +367,18 @@ when no memories are found.
 Journal memory is personal-memory RAG, not document Q&A. The assistant should
 use retrieved memories gently and naturally, without dumping all saved entries
 or exposing raw metadata unless it helps the request. Local Chroma data is
-stored by default in `backend/chroma_db`, which is ignored by git.
+stored by default in `backend/chroma_db`, which is ignored by git. If a local
+Chroma tenant error prevents the original store from opening, the backend falls
+back to `backend/chroma_db_recovered` without deleting the original data.
+
+```http
+POST /chat
+```
+
+Generates a Moon Agent response. The backend searches journal memory for
+private context, routes tool calls through the LangGraph agent, and returns
+structured `suggested_tasks` when the response contains checklist tasks. The
+frontend can transfer those suggested tasks into Daily Planning.
 
 ## Current Limitations
 
@@ -368,21 +386,24 @@ stored by default in `backend/chroma_db`, which is ignored by git.
 - Google OAuth is local-file based and not production-ready.
 - The MCP stdio server is launched from the local Python environment.
 - No persistent user accounts, auth, or database-backed session memory yet.
-- RAG/memory is planned but not implemented yet.
+- Daily Planning tasks are stored in browser localStorage for the current prototype.
+- Journal memory is local ChromaDB storage and is not synced across devices.
 
 ## Roadmap
 
-- Clean up Mobile View
-- Finish uop Daily Planning, Affirmation, Save readings Tab
+- Create UI for Mobile layout
+- Build out the Affirmations and Saved Readings tabs.
+- Add database-backed Daily Planning task storage and optional calendar sync.
 - Add production-ready auth and Google OAuth handling.
-- Add a richer dashboard for moon phase, tasks, calendar blocks, and Notion saves.
+- Add a richer dashboard for moon phase, Moonscope insights, tasks, calendar block s.
 
 ## Interview Demo Flow
 
 1.  Ask Moon Agent for today's moon guidance.
-2.  Ask the Moon Agent when is the next New or Full Moon.
+2.  Open Moonscope for the structured daily moon reading.
 3.  Ask the Moon Agent what the current astrological house and sign the Moon is in.
-4.  Ask it to turn the guidance into a practical plan.
+4.  Ask it to turn the guidance into a practical plan and transfer suggested tasks to Daily Planning.
+5.  Save a journal entry, then ask the agent to reflect on recent journal memories.
 
 ## Status
 

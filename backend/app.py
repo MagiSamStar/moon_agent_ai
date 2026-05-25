@@ -1,6 +1,7 @@
 import calendar
 from datetime import datetime, timezone
 import os
+import re
 import time
 from typing import Any
 
@@ -36,6 +37,21 @@ CHAT_RATE_LIMIT_WINDOW_SECONDS = int(
 )
 MOON_CALENDAR_CACHE_TTL_SECONDS = int(
     os.getenv("MOON_CALENDAR_CACHE_TTL_SECONDS", "10800")
+)
+TASK_LINE_PATTERN = re.compile(r"^\s*[-*]\s+\[[ xX]\]\s+(.+?)\s*$")
+ZODIAC_SIGNS = (
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
 )
 
 
@@ -109,6 +125,17 @@ def wants_affirmation_card(message: str) -> bool:
     )
 
 
+def extract_suggested_tasks(response: str) -> list[str]:
+    tasks = []
+    for line in response.splitlines():
+        match = TASK_LINE_PATTERN.match(line)
+        if match:
+            task = match.group(1).strip()
+            if task:
+                tasks.append(task)
+    return tasks
+
+
 def get_current_moon_phase() -> str | None:
     try:
         from stdio_server import get_moon
@@ -143,6 +170,16 @@ def _as_number(value: Any) -> float | None:
         return None
 
 
+def _zodiac_sign_from_longitude(longitude: Any) -> str | None:
+    longitude_number = _as_number(longitude)
+    if longitude_number is None:
+        return None
+
+    normalized_longitude = longitude_number % 360
+    sign_index = int(normalized_longitude // 30)
+    return ZODIAC_SIGNS[sign_index]
+
+
 def _normalize_moon_context(
     moon_data: dict[str, Any] | None,
     planet_data: dict[str, Any] | None,
@@ -168,6 +205,10 @@ def _normalize_moon_context(
         ("next_new_moon", "nextNewMoon", "next_new_moon_date"),
     )
     sign = _first_present(planet_data, ("sign", "zodiac_sign", "zodiacSign"))
+    if not sign:
+        sign = _zodiac_sign_from_longitude(
+            _first_present(planet_data, ("lon", "longitude", "ecliptic_longitude"))
+        )
     house = _first_present(planet_data, ("house", "house_number", "houseNumber"))
 
     return {
@@ -418,4 +459,5 @@ async def chat(http_request: Request, request: ChatRequest):
     return {
         "response": response,
         "affirmation_card": card.model_dump() if card else None,
+        "suggested_tasks": extract_suggested_tasks(response),
     }

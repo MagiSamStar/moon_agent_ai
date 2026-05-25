@@ -164,6 +164,8 @@ select:disabled {
 .panel-title button,
 .memory-search button,
 .calendar-toolbar button,
+.task-entry-panel button,
+.task-transfer button,
 .placeholder-panel button {
   border-radius: 9px;
   padding: 12px 16px;
@@ -187,7 +189,7 @@ select:disabled {
   font-size: 13px;
 }
 
-.moon-context-card,
+/* .moon-context-card,
 .panel,
 .rail-card,
 .chat-panel {
@@ -196,8 +198,16 @@ select:disabled {
     linear-gradient(135deg, rgba(22, 26, 43, 0.96), rgba(12, 16, 35, 0.96)),
     radial-gradient(circle at 0 0, rgba(122, 132, 190, 0.12), transparent 38%);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
-}
+} */
 
+.rail-card {
+ border: 1px solid rgba(148, 163, 184, 0.16);
+  background:
+    linear-gradient(135deg, rgba(22, 26, 43, 0.96), rgba(12, 16, 35, 0.96)),
+    radial-gradient(circle at 0 0, rgba(122, 132, 190, 0.12), transparent 38%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+
+}
 .moon-context-card {
   display: grid;
   grid-template-columns: 48px 1fr;
@@ -227,6 +237,8 @@ select:disabled {
 .panel p,
 .rail-card p {
   margin: 0;
+  border-bottom: solid #ccc 0.5px;
+padding-bottom:15px;
   color: #9eabc1;
   line-height: 1.7;
 }
@@ -323,6 +335,27 @@ select:disabled {
   color: rgba(248, 250, 252, 0.76);
 }
 
+.task-transfer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 14px;
+}
+
+.task-transfer p {
+  color: #aab6ca;
+  font-size: 13px;
+}
+
+.task-transfer button {
+  padding: 9px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .prompt-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -359,7 +392,8 @@ select:disabled {
 .journal-editor textarea,
 .journal-editor input,
 .journal-editor select,
-.memory-search input {
+.memory-search input,
+.task-entry-panel input {
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 10px;
   color: #dbe7f7;
@@ -370,7 +404,8 @@ select:disabled {
 .composer input,
 .journal-editor input,
 .journal-editor select,
-.memory-search input {
+.memory-search input,
+.task-entry-panel input {
   min-width: 0;
   padding: 13px 14px;
 }
@@ -410,8 +445,268 @@ select:disabled {
 }
 
 .journal-screen,
+.planning-screen,
+.moonscope-screen,
 .calendar-screen {
   max-width: 1040px;
+}
+
+.moonscope-hero {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 18px;
+  padding: 30px;
+  background:
+    linear-gradient(135deg, rgba(22, 26, 43, 0.96), rgba(12, 16, 35, 0.96)),
+    radial-gradient(circle at 14% 20%, rgba(229, 197, 115, 0.12), transparent 36%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+}
+
+.moonscope-hero .phase-visual {
+  margin: 0;
+}
+
+.moonscope-hero h2 {
+  margin: 0 0 10px;
+  color: #dbe7f7;
+  font-size: 28px;
+}
+
+.moonscope-hero p {
+  margin: 0;
+  color: #9eabc1;
+  line-height: 1.7;
+}
+
+.moonscope-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.moonscope-card {
+  min-height: 210px;
+}
+
+.moonscope-card.wide,
+.moonscope-card.affirmation {
+  grid-column: 1 / -1;
+}
+
+.moonscope-card span {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #e8c779;
+  background: rgba(122, 87, 33, 0.2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.moonscope-card h2 {
+  margin-bottom: 12px;
+}
+
+.moonscope-card.affirmation {
+  border-color: rgba(229, 197, 115, 0.22);
+}
+
+.moonscope-card.affirmation p {
+  color: #e3e9f5;
+  font-size: 18px;
+}
+
+.planning-roadmap {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 18px;
+  padding: 26px;
+  background:
+    linear-gradient(135deg, rgba(22, 26, 43, 0.96), rgba(12, 16, 35, 0.96)),
+    radial-gradient(circle at 12% 10%, rgba(122, 132, 190, 0.13), transparent 34%);
+}
+
+.planning-roadmap h2,
+.task-section h2,
+.recommended-schedule h2 {
+  margin: 0 0 10px;
+  color: #d8e4f5;
+}
+
+.planning-roadmap p {
+  margin: 0;
+  color: #9eabc1;
+  line-height: 1.7;
+}
+
+.planning-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.stat-card {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 2px 14px;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(22, 26, 43, 0.96), rgba(12, 16, 35, 0.96));
+}
+
+.stat-card span {
+  display: grid;
+  grid-row: span 2;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  color: #aeb8ea;
+  background: rgba(85, 117, 173, 0.26);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.stat-card strong {
+  color: #dbe7f7;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.stat-card small {
+  color: #8e9ab0;
+}
+
+.task-entry-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 32px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  padding: 16px;
+  background: rgba(22, 26, 43, 0.78);
+}
+
+.task-section {
+  margin-top: 32px;
+}
+
+.task-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.task-card {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(22, 26, 43, 0.92), rgba(12, 16, 35, 0.92));
+}
+
+.task-card.completed {
+  opacity: 0.62;
+}
+
+.task-card.completed .task-details strong {
+  text-decoration: line-through;
+}
+
+.task-check {
+  width: 19px;
+  height: 19px;
+  margin-top: 2px;
+  border: 2px solid rgba(148, 163, 184, 0.52);
+  border-radius: 999px;
+  background: transparent;
+}
+
+.task-check.done {
+  border-color: #a4a9e6;
+  background: #a4a9e6;
+  box-shadow: inset 0 0 0 4px #11162a;
+}
+
+.task-details {
+  min-width: 0;
+}
+
+.task-details strong {
+  display: block;
+  color: #dbe7f7;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.task-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.task-chip {
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: #aab6ca;
+  background: rgba(38, 44, 66, 0.84);
+  font-size: 12px;
+}
+
+.task-chip.lunar {
+  color: #e8c779;
+  background: rgba(122, 87, 33, 0.3);
+}
+
+.recommended-schedule {
+  margin-top: 32px;
+}
+
+.schedule-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  border-radius: 8px;
+  padding: 14px 12px;
+  background: rgba(31, 35, 53, 0.88);
+}
+
+.schedule-time {
+  color: #9eabc1;
+  font-size: 14px;
+}
+
+.schedule-row strong {
+  display: block;
+  color: #dbe7f7;
+  font-weight: 500;
+}
+
+.schedule-row small {
+  color: #e8c779;
 }
 
 .panel {
@@ -691,6 +986,10 @@ select:disabled {
   .prompt-grid,
   .form-row,
   .memory-search,
+  .moonscope-hero,
+  .moonscope-grid,
+  .planning-stats,
+  .task-entry-panel,
   .composer,
   .right-rail {
     grid-template-columns: 1fr;
@@ -717,8 +1016,21 @@ select:disabled {
   }
 
   .moon-context-card,
+  .moonscope-hero,
+  .planning-roadmap,
+  .schedule-row,
   .message-row {
     grid-template-columns: 1fr;
+  }
+
+  .task-transfer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .moonscope-card.wide,
+  .moonscope-card.affirmation {
+    grid-column: auto;
   }
 
   .message-row.is-user .message-bubble {
