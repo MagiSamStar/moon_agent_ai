@@ -10,7 +10,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
 
-COPY app.py creative_agent.py journal_memory.py moon_agent_core.py openai_client.py responses.py stdio_server.py run_cli.py ./
+COPY app.py creative_agent.py journal_memory.py moon_agent_core.py openai_client.py profile_memory.py responses.py stdio_server.py run_cli.py ./
 
 EXPOSE 8000
 
