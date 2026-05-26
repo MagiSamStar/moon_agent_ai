@@ -61,6 +61,7 @@ FastMCP stdio tool server
 - MCP stdio server for tool isolation.
 - Creative agent for structured affirmation card generation.
 - Journal memory RAG with ChromaDB and OpenAI embeddings.
+- Persistent profile memory for user basics like name, goals, and preferred planning style.
 - Live moon context and lunar calendar data for the dashboard UI.
 - Moonscope tab with a structured daily moon reading for spiritual reflection and soul healing.
 - Daily Planning tab with manual tasks, completion tracking, local persistence, and agent-suggested task transfer.
@@ -94,6 +95,7 @@ Moon_Agent/
     app.py               # FastAPI backend
     creative_agent.py    # Structured affirmation card agent
     journal_memory.py    # ChromaDB journal memory storage and retrieval
+    profile_memory.py    # JSON-backed user profile memory
     moon_agent_core.py   # LangGraph agent and MCP client setup
     stdio_server.py      # FastMCP tool server
     run_cli.py           # CLI runner for local testing
@@ -380,6 +382,11 @@ private context, routes tool calls through the LangGraph agent, and returns
 structured `suggested_tasks` when the response contains checklist tasks. The
 frontend can transfer those suggested tasks into Daily Planning.
 
+Profile memory is stored separately from journal memory in
+`backend/memory/user_profile.json`. It captures obvious profile basics from chat,
+such as name, goals, and preferred guidance style, then injects them into the
+agent profile on later turns. The file is local and ignored by git.
+
 ## Current Limitations
 
 - The backend currently uses a single in-memory conversation for local demo use.
@@ -388,6 +395,7 @@ frontend can transfer those suggested tasks into Daily Planning.
 - No persistent user accounts, auth, or database-backed session memory yet.
 - Daily Planning tasks are stored in browser localStorage for the current prototype.
 - Journal memory is local ChromaDB storage and is not synced across devices.
+- Profile memory is local JSON storage and does not support multiple users yet.
 
 ## Roadmap
 

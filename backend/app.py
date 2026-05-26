@@ -16,6 +16,7 @@ from journal_memory import (
     search_journal_entries,
 )
 from moon_agent_core import create_moon_graph, process_message
+from profile_memory import remember_profile_from_message
 
 app = FastAPI()
 
@@ -445,11 +446,14 @@ async def chat(http_request: Request, request: ChatRequest):
     except Exception:
         journal_context = ""
 
+    user_profile = remember_profile_from_message(request.message)
+
     response, conversation = await process_message(
         graph,
         conversation,
         request.message,
         journal_context=journal_context,
+        user_profile=user_profile,
     )
 
     card = None

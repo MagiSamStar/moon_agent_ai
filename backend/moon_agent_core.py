@@ -353,6 +353,7 @@ async def process_message(
     conversation,
     user_message: str,
     journal_context: str = "",
+    user_profile: dict[str, Any] | None = None,
 ):
     conversation.append(HumanMessage(content=user_message))
 
@@ -364,7 +365,7 @@ async def process_message(
     result = await graph.ainvoke(
         {
             "messages": conversation,
-            "user_profile": USER_PROFILE,
+            "user_profile": user_profile or USER_PROFILE,
             "plan_preview": None,
             "journal_context": journal_context,
         }

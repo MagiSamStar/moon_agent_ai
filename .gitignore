@@ -9,6 +9,7 @@ __pycache__/
 backend/__pycache__/
 backend/chroma_db/
 backend/chroma_db_recovered/
+backend/memory/*.json
 *.py[cod]
 *.log
 venv/
@@ -18,3 +19,4 @@ frontend/dist/
 .mypy_cache/
 .ruff_cache/
 docs/
+mobile-idea/
