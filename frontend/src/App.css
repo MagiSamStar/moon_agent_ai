@@ -923,6 +923,86 @@ padding-bottom:15px;
   color: #9eabc1;
 }
 
+.chakra-card {
+  display: grid;
+  gap: 14px;
+}
+
+.chakra-card > p,
+.chakra-guidance p {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.chakra-card > p {
+  color: #b8a9d6;
+  font-size: 13px;
+}
+
+.chakra-card h3 {
+  margin-bottom: 0;
+}
+
+.chakra-element {
+  justify-self: start;
+  border: 1px solid rgba(190, 175, 226, 0.18);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #d8e4f5;
+  background: rgba(122, 104, 172, 0.16);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chakra-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chakra-chip-row span {
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #cfd8ea;
+  background: rgba(148, 163, 184, 0.12);
+  font-size: 12px;
+}
+
+.chakra-guidance {
+  display: grid;
+  gap: 6px;
+}
+
+.chakra-guidance strong,
+.chakra-shadow strong {
+  color: #d8e4f5;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chakra-card blockquote {
+  margin: 0;
+  border-left: 2px solid rgba(190, 175, 226, 0.5);
+  padding-left: 12px;
+  color: #e6dcff;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.chakra-shadow {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 12px;
+}
+
+.chakra-shadow span {
+  color: #9eabc1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .rail-divider {
   height: 1px;
   margin: 18px 0;
@@ -936,6 +1016,452 @@ padding-bottom:15px;
 .quote p {
   color: #e3e9f5;
   font-style: italic;
+}
+
+.mobile-shell {
+  display: none;
+}
+
+.mobile-topbar,
+.mobile-bottom-nav {
+  position: fixed;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(24, 20, 31, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+.mobile-topbar {
+  top: 0;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 44px;
+  align-items: center;
+  min-height: 76px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 18px;
+}
+
+.mobile-topbar span {
+  color: #a8a0ae;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mobile-topbar h1 {
+  margin: 0;
+  color: #f7f2fb;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.mobile-topbar button {
+  justify-self: end;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #f7f2fb;
+  border-radius: 999px;
+  color: #f7f2fb;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.mobile-content {
+  min-height: 100dvh;
+  padding: 96px 18px 112px;
+  background:
+    radial-gradient(circle at 50% 68%, rgba(121, 20, 91, 0.62), transparent 34%),
+    linear-gradient(180deg, #05000b 0%, #09000e 50%, #330022 100%);
+}
+
+.mobile-content .screen {
+  width: 100%;
+  padding: 0;
+}
+
+.mobile-content .screen-header {
+  margin-bottom: 20px;
+}
+
+.mobile-dashboard {
+  display: grid;
+  gap: 16px;
+  color: #f7f2fb;
+}
+
+.mobile-dashboard-header {
+  display: grid;
+  gap: 3px;
+  padding: 2px 4px 0;
+}
+
+.mobile-dashboard-header p,
+.mobile-dashboard-header span {
+  margin: 0;
+  color: #9b92a8;
+  font-size: 12px;
+}
+
+.mobile-dashboard-header h1 {
+  margin: 0;
+  color: #f7f2fb;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.mobile-phase-card,
+.mobile-intentions-card,
+.mobile-ai-card {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgba(26, 29, 45, 0.94), rgba(14, 17, 32, 0.94)),
+    radial-gradient(circle at 0 0, rgba(124, 91, 210, 0.1), transparent 36%);
+}
+
+.mobile-phase-card {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.mobile-card-moon {
+  width: 72px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(164, 169, 230, 0.2);
+  border-radius: 999px;
+  background: #c4d1e4;
+  box-shadow: 0 0 30px rgba(132, 147, 190, 0.14);
+}
+
+.mobile-card-moon.moon-new {
+  background: #10162d;
+  box-shadow: inset 10px 0 0 rgba(191, 203, 223, 0.1);
+}
+
+.mobile-card-moon.moon-waxing {
+  background: linear-gradient(90deg, #111833 0 54%, #c4d1e4 55% 100%);
+}
+
+.mobile-card-moon.moon-waning {
+  background: linear-gradient(90deg, #c4d1e4 0 46%, #111833 47% 100%);
+}
+
+.mobile-phase-title,
+.mobile-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-phase-title h2,
+.mobile-card-heading h2 {
+  margin: 0;
+  color: #f7f2fb;
+  font-size: 16px;
+}
+
+.mobile-phase-title span,
+.mobile-card-heading > .mobile-accordion-icon {
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #cfc9e8;
+  background: rgba(148, 140, 190, 0.22);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mobile-phase-card p,
+.mobile-card-heading p {
+  margin: 8px 0 0;
+  color: #9b92a8;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.mobile-phase-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.mobile-phase-tags span {
+  color: #cfc9e8;
+  font-size: 12px;
+}
+
+.mobile-phase-card button,
+.mobile-add-intention {
+  margin-top: 14px;
+  color: #8f8aa2;
+  background: transparent;
+  font-size: 12px;
+}
+
+.mobile-card-heading {
+  margin-bottom: 12px;
+}
+
+.mobile-card-heading > .mobile-accordion-icon {
+  color: #8ff1cb;
+  background: rgba(10, 126, 100, 0.34);
+}
+
+.mobile-accordion-trigger {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.mobile-heading-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.mobile-heading-copy small {
+  color: #9b92a8;
+  font-size: 12px;
+}
+
+.mobile-accordion-icon {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+}
+
+.mobile-accordion-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.mobile-progress {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mobile-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #9da8e8;
+}
+
+.mobile-intention-list {
+  display: grid;
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.mobile-intention-list button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 0;
+  color: #d8d2e4;
+  background: transparent;
+  text-align: left;
+}
+
+.mobile-intention-list button span {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(180, 177, 203, 0.58);
+  border-radius: 999px;
+}
+
+.mobile-intention-list button.complete span {
+  border-color: #a4a9e6;
+  background: #a4a9e6;
+  box-shadow: inset 0 0 0 4px #171a2b;
+}
+
+.mobile-intention-list strong {
+  color: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.mobile-intention-list button.complete strong {
+  color: #8f8aa2;
+  text-decoration: line-through;
+}
+
+.mobile-ai-card .mobile-card-heading {
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+}
+
+.mobile-ai-card .mobile-card-heading > .mobile-accordion-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #f7f2fb;
+  background: rgba(148, 140, 190, 0.22);
+}
+
+.mobile-accordion-preview {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin-top: 4px;
+  padding: 0;
+  color: #d8d2e4;
+  background: transparent;
+  text-align: left;
+}
+
+.mobile-accordion-preview span {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(180, 177, 203, 0.58);
+  border-radius: 999px;
+}
+
+.mobile-accordion-preview.complete span {
+  border-color: #a4a9e6;
+  background: #a4a9e6;
+  box-shadow: inset 0 0 0 4px #171a2b;
+}
+
+.mobile-accordion-preview strong {
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.mobile-accordion-preview.complete strong {
+  color: #8f8aa2;
+  text-decoration: line-through;
+}
+
+.mobile-ai-preview {
+  margin: 16px 0;
+  border-radius: 12px;
+  padding: 14px;
+  color: #d8d2e4;
+  background: rgba(39, 42, 61, 0.82);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.mobile-ai-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.mobile-ai-form input {
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  padding: 12px 14px;
+  color: #dbe7f7;
+  background: rgba(31, 35, 53, 0.88);
+  outline: 0;
+}
+
+.mobile-ai-form button {
+  border-radius: 999px;
+  padding: 0 14px;
+  color: #f7f2fb;
+  background: rgba(130, 127, 184, 0.44);
+}
+
+.mobile-open-chat {
+  justify-self: start;
+  color: #cfc9e8;
+  background: transparent;
+  font-size: 12px;
+}
+
+.mobile-moon-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mobile-moon-meta span {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 12px;
+  padding: 11px;
+  color: #c8bccd;
+  background: rgba(20, 22, 36, 0.72);
+  font-size: 12px;
+  text-align: center;
+}
+
+.mobile-chat-panel {
+  min-height: calc(100dvh - 208px);
+  padding: 0;
+  background: transparent;
+}
+
+.mobile-chat-panel .messages {
+  max-height: none;
+  min-height: 40dvh;
+}
+
+.mobile-simple-screen {
+  display: grid;
+  gap: 16px;
+}
+
+.mobile-bottom-nav {
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-height: 82px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 9px 6px calc(9px + env(safe-area-inset-bottom));
+}
+
+.mobile-bottom-nav button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: #9b92a0;
+  background: transparent;
+  font-size: 12px;
+}
+
+.mobile-bottom-nav button span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.mobile-bottom-nav button.active {
+  color: #f7f2fb;
+}
+
+.mobile-bottom-nav button.active span {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 @media (max-width: 1180px) {
@@ -957,7 +1483,11 @@ padding-bottom:15px;
 
 @media (max-width: 860px) {
   .app-shell {
-    grid-template-columns: 1fr;
+    display: none;
+  }
+
+  .mobile-shell {
+    display: block;
   }
 
   .sidebar {

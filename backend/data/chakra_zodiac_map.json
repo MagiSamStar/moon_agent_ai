@@ -1,0 +1,98 @@
+{
+  "Aries": {
+    "chakra": "Solar Plexus Chakra",
+    "element": "Fire",
+    "themes": ["confidence", "courage", "action", "identity", "personal power"],
+    "shadow": ["impulsiveness", "anger", "impatience", "ego battles"],
+    "practice": "Take one bold but intentional action toward your goal today.",
+    "affirmation": "I trust my power and move with courage."
+  },
+  "Taurus": {
+    "chakra": "Heart Chakra",
+    "element": "Earth",
+    "themes": ["self-worth", "stability", "patience", "pleasure", "receiving"],
+    "shadow": ["stubbornness", "comfort zones", "possessiveness", "resistance to change"],
+    "practice": "Slow down and do one thing that honors your body and self-worth.",
+    "affirmation": "I am worthy of love, peace, and abundance."
+  },
+  "Gemini": {
+    "chakra": "Throat Chakra",
+    "element": "Air",
+    "themes": ["communication", "curiosity", "learning", "expression", "ideas"],
+    "shadow": ["overthinking", "scattered energy", "gossip", "mental restlessness"],
+    "practice": "Write, speak, or record what has been moving through your mind.",
+    "affirmation": "My voice is clear, honest, and aligned."
+  },
+  "Cancer": {
+    "chakra": "Sacral Chakra",
+    "element": "Water",
+    "themes": ["emotions", "intuition", "nurturing", "home", "inner safety"],
+    "shadow": ["moodiness", "emotional attachment", "fear of vulnerability", "withdrawal"],
+    "practice": "Create emotional safety today through rest, journaling, or self-nurturing.",
+    "affirmation": "My emotions are sacred messages from within."
+  },
+  "Leo": {
+    "chakra": "Solar Plexus Chakra",
+    "element": "Fire",
+    "themes": ["confidence", "creativity", "joy", "visibility", "self-expression"],
+    "shadow": ["pride", "attention-seeking", "insecurity", "dramatic reactions"],
+    "practice": "Let yourself be seen through one creative or expressive action.",
+    "affirmation": "I shine by being fully and authentically myself."
+  },
+  "Virgo": {
+    "chakra": "Root Chakra",
+    "element": "Earth",
+    "themes": ["service", "discernment", "healing", "routine", "refinement"],
+    "shadow": ["perfectionism", "self-criticism", "overworking", "worry"],
+    "practice": "Ground yourself by simplifying one task, space, or routine.",
+    "affirmation": "I am safe to grow through progress, not perfection."
+  },
+  "Libra": {
+    "chakra": "Heart Chakra",
+    "element": "Air",
+    "themes": ["harmony", "relationships", "beauty", "balance", "connection"],
+    "shadow": ["people-pleasing", "indecision", "avoidance", "external validation"],
+    "practice": "Bring balance to one relationship by honoring both your needs and theirs.",
+    "affirmation": "I create harmony without abandoning myself."
+  },
+  "Scorpio": {
+    "chakra": "Sacral Chakra",
+    "element": "Water",
+    "themes": ["transformation", "depth", "intimacy", "shadow work", "emotional power"],
+    "shadow": ["control", "jealousy", "obsession", "emotional intensity"],
+    "practice": "Release one hidden fear, attachment, or emotional pattern through reflection.",
+    "affirmation": "I transform through truth, trust, and emotional courage."
+  },
+  "Sagittarius": {
+    "chakra": "Third Eye Chakra",
+    "element": "Fire",
+    "themes": ["truth", "vision", "wisdom", "freedom", "expansion"],
+    "shadow": ["restlessness", "overpromising", "escapism", "bluntness"],
+    "practice": "Reflect on the bigger vision guiding your next step.",
+    "affirmation": "I trust my inner vision and follow the path of truth."
+  },
+  "Capricorn": {
+    "chakra": "Root Chakra",
+    "element": "Earth",
+    "themes": ["discipline", "structure", "stability", "responsibility", "long-term goals"],
+    "shadow": ["rigidity", "workaholism", "fear of failure", "emotional restriction"],
+    "practice": "Ground your energy by organizing one area of your life or plan.",
+    "affirmation": "I build my life with patience, purpose, and strength."
+  },
+  "Aquarius": {
+    "chakra": "Third Eye Chakra",
+    "element": "Air",
+    "themes": ["innovation", "community", "future vision", "individuality", "higher perspective"],
+    "shadow": ["detachment", "rebellion", "isolation", "over-intellectualizing"],
+    "practice": "Write down one future-focused idea and one practical step to test it.",
+    "affirmation": "My unique vision serves the collective good."
+  },
+  "Pisces": {
+    "chakra": "Crown Chakra",
+    "element": "Water",
+    "themes": ["spirituality", "dreams", "compassion", "intuition", "surrender"],
+    "shadow": ["escapism", "confusion", "lack of boundaries", "idealization"],
+    "practice": "Spend quiet time in meditation, prayer, music, or dream reflection.",
+    "affirmation": "I am connected to divine wisdom and trust my inner guidance."
+  }
+}

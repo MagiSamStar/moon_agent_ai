@@ -4,7 +4,8 @@ import os
 import re
 import time
 from typing import Any
-
+import json
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -39,6 +40,7 @@ CHAT_RATE_LIMIT_WINDOW_SECONDS = int(
 MOON_CALENDAR_CACHE_TTL_SECONDS = int(
     os.getenv("MOON_CALENDAR_CACHE_TTL_SECONDS", "10800")
 )
+DATA_PATH = Path(__file__).resolve().parent / "data" / "chakra_zodiac_map.json"
 TASK_LINE_PATTERN = re.compile(r"^\s*[-*]\s+\[[ xX]\]\s+(.+?)\s*$")
 ZODIAC_SIGNS = (
     "Aries",
@@ -151,7 +153,6 @@ def get_current_moon_phase() -> str | None:
             return str(value)
     return None
 
-
 def _first_present(data: dict[str, Any], keys: tuple[str, ...]) -> Any:
     for key in keys:
         value = data.get(key)
@@ -181,6 +182,28 @@ def _zodiac_sign_from_longitude(longitude: Any) -> str | None:
     return ZODIAC_SIGNS[sign_index]
 
 
+def get_chakra_energy(sign: str | None) -> dict[str, Any]:
+    fallback = {
+        "chakra": "General Energy",
+        "element": None,
+        "themes": [],
+        "shadow": [],
+        "practice": "Reflect on what your body and intuition are asking for today.",
+        "affirmation": None,
+    }
+    if not sign:
+        return fallback
+
+    normalized_sign = str(sign).strip().title()
+    try:
+        with open(DATA_PATH, "r", encoding="utf-8") as file:
+            chakra_map = json.load(file)
+    except (OSError, json.JSONDecodeError):
+        return fallback
+
+    return chakra_map.get(normalized_sign, fallback)
+
+
 def _normalize_moon_context(
     moon_data: dict[str, Any] | None,
     planet_data: dict[str, Any] | None,
@@ -205,17 +228,30 @@ def _normalize_moon_context(
         moon_data,
         ("next_new_moon", "nextNewMoon", "next_new_moon_date"),
     )
-    sign = _first_present(planet_data, ("sign", "zodiac_sign", "zodiacSign"))
+    sign = _first_present(
+        planet_data,
+        ("sign", "zodiac_sign", "zodiacSign", "moon_sign", "moonSign"),
+    )
+    if not sign:
+        sign = _first_present(moon_data, ("moon_sign", "moonSign", "sign", "zodiac_sign"))
     if not sign:
         sign = _zodiac_sign_from_longitude(
             _first_present(planet_data, ("lon", "longitude", "ecliptic_longitude"))
         )
     house = _first_present(planet_data, ("house", "house_number", "houseNumber"))
+    sign = str(sign).strip().title() if sign else None
+    chakra_energy = get_chakra_energy(sign)
 
     return {
         "phase": str(phase or "Moon phase unavailable"),
         "illumination": illumination,
         "sign": str(sign) if sign else None,
+        "chakra_focus": chakra_energy.get("chakra"),
+        "chakra_element": chakra_energy.get("element"),
+        "chakra_themes": chakra_energy.get("themes", []),
+        "shadow_themes": chakra_energy.get("shadow", []),
+        "chakra_practice": chakra_energy.get("practice"),
+        "chakra_affirmation": chakra_energy.get("affirmation"),
         "house": str(house) if house else None,
         "next_full_moon": str(next_full_moon) if next_full_moon else None,
         "next_new_moon": str(next_new_moon) if next_new_moon else None,
@@ -225,7 +261,6 @@ def _normalize_moon_context(
             "planet": planet_data,
         },
     }
-
 
 def _energy_theme(phase: str) -> str:
     normalized = phase.lower()

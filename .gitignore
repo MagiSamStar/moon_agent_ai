@@ -20,3 +20,4 @@ frontend/dist/
 .ruff_cache/
 docs/
 mobile-idea/
+.vercel
