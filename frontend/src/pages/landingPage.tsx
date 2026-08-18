@@ -112,7 +112,7 @@ export default function LandingPage() {
           </div>
         </nav>
 
-        <div className="  bg-black grid min-h-[calc(100vh-88px)]  items-center gap-14 px-6 py-16 lg:grid-cols-[1fr_0.9fr] lg:px-8 lg:py-20">
+        <div className="mx-auto grid min-h-[calc(100vh-88px)] w-full max-w-7xl items-center gap-14 bg-black px-6 py-16 lg:grid-cols-[1fr_0.9fr] lg:px-8 lg:py-20">
           <section className="max-w-3xl">
        
             <h1 className="text-5xl font-black leading-[0.98] tracking-tight text-white sm:text-6xl lg:text-7xl">
@@ -245,7 +245,7 @@ export default function LandingPage() {
         id="workflow"
         className="px-6 py-24 lg:px-8 bg-black"
       >
-        <div className="">
+        <div className="mx-auto w-full max-w-7xl">
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1fr] lg:items-center">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.28em] text-indigo-200">
