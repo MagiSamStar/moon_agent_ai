@@ -1,5 +1,7 @@
 import { Show, SignUpButton, UserButton } from '@clerk/react'
 
+const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)
+
 const features = [
   {
     title: 'AI Moon Assistant',
@@ -81,19 +83,32 @@ export default function LandingPage() {
             >
               Open Demo
             </a>
-            <Show when="signed-out">
-              <SignUpButton mode="modal">
-                <button
-                  className="rounded-lg bg-indigo-300 px-4 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-200"
-                  type="button" disabled={true}
-                >
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
+            {clerkEnabled ? (
+              <>
+                <Show when="signed-out">
+                  <SignUpButton mode="modal">
+                    <button
+                      className="rounded-lg bg-indigo-300 px-4 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-200"
+                      type="button"
+                      disabled
+                    >
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </Show>
+                <Show when="signed-in">
+                  <UserButton />
+                </Show>
+              </>
+            ) : (
+              <button
+                className="rounded-lg bg-indigo-300 px-4 py-2 text-sm font-bold text-slate-950 opacity-60 shadow-lg shadow-indigo-500/20"
+                type="button"
+                disabled
+              >
+                Sign Up
+              </button>
+            )}
           </div>
         </nav>
 
